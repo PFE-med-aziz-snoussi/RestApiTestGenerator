@@ -1,10 +1,10 @@
 package com.vermeg.restapitestgenerator.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "projects")
@@ -18,6 +18,10 @@ public class Project {
     @Size(max = 100)
     private String nomDuProjet;
 
+    @NotBlank
+    @Size(max = 100)
+    private String description;
+
     @Column(name = "Date_de_creation", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Date dateDeCreation;
 
@@ -25,27 +29,21 @@ public class Project {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Size(max = 255)
-    @Column(name = "Fichier_Postman_Collection", length = 255)
-    private String fichierPostmanCollection;
-
-    @Size(max = 255)
-    @Column(name = "Fichier_Result_Collection", length = 255)
-    private String fichierResultCollection;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Version> versions;
 
     // Constructors
     public Project() {
     }
 
-    public Project(String nomDuProjet, Date dateDeCreation, User user, String fichierPostmanCollection, String fichierResultCollection) {
+    public Project(String nomDuProjet, String description, Date dateDeCreation, User user, List<Version> versions) {
         this.nomDuProjet = nomDuProjet;
+        this.description = description;
         this.dateDeCreation = dateDeCreation;
         this.user = user;
-        this.fichierPostmanCollection = fichierPostmanCollection;
-        this.fichierResultCollection = fichierResultCollection;
+        this.versions = versions;
     }
 
-    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -78,21 +76,19 @@ public class Project {
         this.user = user;
     }
 
-    public String getFichierPostmanCollection() {
-        return fichierPostmanCollection;
+    public List<Version> getVersions() {
+        return versions;
     }
 
-    public void setFichierPostmanCollection(String fichierPostmanCollection) {
-        this.fichierPostmanCollection = fichierPostmanCollection;
+    public void setVersions(List<Version> versions) {
+        this.versions = versions;
     }
 
-    public String getFichierResultCollection() {
-        return fichierResultCollection;
+    public String getDescription() {
+        return description;
     }
 
-    public void setFichierResultCollection(String fichierResultCollection) {
-        this.fichierResultCollection = fichierResultCollection;
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
-
-

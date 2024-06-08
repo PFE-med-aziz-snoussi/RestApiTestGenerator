@@ -34,14 +34,11 @@ public class ProjectServiceImpl implements IProjectService{
                 .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
 
         project.setNomDuProjet(projectDetails.getNomDuProjet());
-       // project.setDateDeCreation(project.getDateDeCreation());
         project.setUser(project.getUser());
-        project.setFichierPostmanCollection(projectDetails.getFichierPostmanCollection());
-        project.setFichierResultCollection(projectDetails.getFichierResultCollection());
+        project.setVersions(project.getVersions());
 
         return projectRepository.save(project);
     }
-
     @Override
     public String deleteProject(Long id) {
         Optional<Project> projectOptional = projectRepository.findById(id);

@@ -5,6 +5,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -45,12 +47,13 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
     @Async
     @Override
-    public CompletableFuture<String> runNewman(String postmanCollectionFileName) {
+    public CompletableFuture<String> runNewman(String postmanCollectionFileName,Long executionId) {
         try {
             File directory = new File("public");
-            String postmanCollectionPath = directory.getAbsolutePath() + File.separator + postmanCollectionFileName;
-            String resultNormalPath = directory.getAbsolutePath() + File.separator + "result_" + postmanCollectionFileName;
-            String resultPath = resultNormalPath.replaceAll("\\\\", "\\\\\\\\");
+            String postmanCollectionPath = directory.getAbsolutePath()+ File.separator + "collections" + File.separator + postmanCollectionFileName;
+            String resultNormalPath = directory.getAbsolutePath() +File.separator + "executions" + File.separator + "result_" + postmanCollectionFileName;
+            //resultNormalPath = resultNormalPath.replaceFirst("\\.json$", " _ " + executionId + ".json");
+            String resultPath = resultNormalPath.replaceAll("\\\\", "\\\\\\\\").replace(".json","_"+executionId.toString()+".json");
             String command = "cmd /c newman run " + postmanCollectionPath + " --reporters json --reporter-json-export " + resultPath + " --insecure";
 
             // Execute the command
@@ -63,14 +66,41 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
             }
             // Wait for the process to complete
             process.waitFor();
-            return CompletableFuture.completedFuture(resultNormalPath);
+            return CompletableFuture.completedFuture("result_" + postmanCollectionFileName.replace(".json","_"+executionId.toString()+".json"));
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return CompletableFuture.completedFuture(null);
         }
     }
-    public  String generatePostmanCollection(String openApiContent, String outputFileName) {
+
+    public String saveOpenAPIFile(String openApiContent, String outputFileName) {
+        File directory = new File("public");
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        String filePath = directory.getAbsolutePath()+File.separator+"openapifiles"+File.separator+outputFileName;
+
+        try (FileWriter fileWriter = new FileWriter(filePath)) {
+            fileWriter.write(openApiContent);
+            return outputFileName;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+    public  String generatePostmanCollection(String OpenAPIFileName, String outputFileName) {
+        File directory = new File("public");
+        String openApiFilePath = directory.getAbsolutePath()+File.separator+"openapifiles"+File.separator+OpenAPIFileName;
+
+        String openApiContent = "";
+        try {
+            openApiContent = new String(Files.readAllBytes(Paths.get(openApiFilePath)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error reading OpenAPI file.";
+        }
+
+
         OpenAPIParser openApiParser = new OpenAPIParser();
         SwaggerParseResult parseResult = openApiParser.readContents(openApiContent, null, null);
         if (parseResult != null && parseResult.getOpenAPI() != null) {
@@ -830,7 +860,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             String json = gson.toJson(postmanCollection);
-            File directory = new File("public");
+            //File directory = new File("public");
             //System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 directory.mkdirs();
@@ -838,7 +868,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
             //String filePath = directory.getAbsolutePath() + File.separator + outputFileName;
 
             //try (FileWriter writer = new FileWriter(outputFilePath)) { "public"+File.separator+
-            try (FileWriter writer = new FileWriter("public"+ File.separator+outputFileName)) {
+            try (FileWriter writer = new FileWriter("public"+File.separator+"collections"+File.separator+outputFileName)) {
 
                 writer.write(json);
                 return outputFileName;

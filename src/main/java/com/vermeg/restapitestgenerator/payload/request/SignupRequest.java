@@ -27,7 +27,6 @@ public class SignupRequest {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @NotBlank
     @Size(max = 100)
     private String imageName;
 

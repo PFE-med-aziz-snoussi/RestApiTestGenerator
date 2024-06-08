@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public interface IPostmanCollectionService {
-    CompletableFuture<String> runNewman(String postmanCollectionPath);
+    CompletableFuture<String> runNewman(String postmanCollectionPath,Long executionId);
     String generatePostmanCollection(String openApiFilePath, String outputFileName);
     PostmanCollection.Auth generateAuth(Map<String, SecurityScheme> securitySchemas, String TypeAuth);
     PostmanCollection.Auth generateFakeAuth(Map<String, SecurityScheme> securitySchemas, String TypeAuth);
