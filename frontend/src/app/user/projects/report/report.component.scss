@@ -1,0 +1,348 @@
+/* Variables for Themes */
+$theme-dark: (
+    background-color: #222,
+    text-color: #ccd2d8,
+    tab-border: solid 1px #444,
+    success: #689f38,
+    failure: #d32f2f,
+    warning: #fab710,
+    info: #2196F3,
+    failure-row: #d32f2f,
+    warning-row: #fab710,
+    //card-bg: #444,
+    card-footer: #4f5758,
+    h4-text: #ccd1d9
+);
+
+$theme-light: (
+    tab-border: solid 1px #fff,
+    text-color: #000000,
+    success: #689f38,
+    failure: #dc3544,
+    warning: #f4c10b,
+    info: #49a1b8,
+    failure-row: #f5c6cb,
+    warning-row: #ffeeba,
+    card-bg: #f7f7f7,
+    h4-text: #ffffff
+);
+
+/* Body and General Styles */
+body {
+  padding-top: 30px;
+  background-color: map-get($theme-dark, background-color)!important;
+  color: map-get($theme-dark, text-color);
+
+  &.theme-light {
+    background-color: map-get($theme-light, card-bg)!important;
+    color: map-get($theme-light, text-color);
+  }
+}
+
+h4 {
+    color: map-get($theme-dark, h4-text);
+
+    body.theme-light & {
+        color: map-get($theme-light, h4-text);
+    }
+}
+
+body.theme-dark h1 {
+    color: #ccd2da;
+}
+
+.card-body {
+    background-color: map-get($theme-dark, card-bg);
+
+    body.theme-light & {
+        background-color: map-get($theme-light, card-bg);
+    }
+}
+
+.card-header {
+    background-color: map-get($theme-dark, card-bg);
+    padding:2rem;
+    body.theme-light & {
+        background-color: map-get($theme-light, card-bg);
+    }
+}
+
+.card-footer {
+    padding: .75rem 1.25rem;
+    background-color: map-get($theme-dark, card-footer);
+
+    body.theme-light & {
+        background-color: map-get($theme-light, card-footer);
+    }
+}
+
+.custom-tab {
+  padding: 10px 15px;
+  margin-right: 0px;
+  height: 47px;
+  width: 69px;
+  text-align: center;
+  border: map-get($theme-dark, tab-border);
+  border-bottom: none;
+  cursor: pointer;
+
+  body.theme-light & {
+      border: map-get($theme-light, tab-border);
+  }
+}
+
+.nav-pills .nav-link.active {
+  background-color: transparent!important;
+}
+
+.nav-tabs {
+    padding-top: 10px;
+    height: 105px;
+    overflow-y: auto;
+  }
+
+
+/* Card Icons Rotation */
+.card-body .rotate {
+  z-index: 8;
+  float: right;
+  height: 100%;
+}
+
+.card-body .rotate i {
+  color: #14141426;
+  position: absolute;
+  right: -10px;
+  bottom: 0;
+  -webkit-transform: rotate(-44deg);
+  transform: rotate(-44deg);
+}
+
+/* Background Colors */
+.bg-info {
+    background-color: map-get($theme-dark, info)!important;
+
+    body.theme-light & {
+        background-color: map-get($theme-light, info)!important;
+    }
+}
+
+.bg-success {
+    background-color: map-get($theme-dark, success)!important;
+
+    body.theme-light & {
+        background-color: map-get($theme-light, success)!important;
+    }
+}
+
+.bg-danger {
+    background-color: map-get($theme-dark, failure)!important;
+
+    body.theme-light & {
+        background-color: map-get($theme-light, failure)!important;
+    }
+}
+
+.bg-warning {
+    background-color: map-get($theme-dark, warning)!important;
+
+    body.theme-light & {
+        background-color: map-get($theme-light, warning)!important;
+    }
+}
+
+/* Badge Colors */
+.badge-warning {
+    color: var(--badge-text)!important;
+    background-color: map-get($theme-dark, warning)!important;
+
+    body.theme-light & {
+        background-color: map-get($theme-light, warning)!important;
+    }
+}
+
+/* Dynamic Height */
+.dyn-height {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+/* Text Wrapping */
+.text-wrap {
+    word-wrap: break-word; 
+    min-width: 600px; 
+    max-width: 600px; 
+    white-space: normal;
+}
+
+/*.row {
+    justify-content: space-between;
+  
+    .col-lg-3, .col-md-6 {
+      flex: 0 0 auto;
+      width: calc(30% - 15px); // Réglez la largeur de chaque colonne en fonction de vos besoins
+      margin-bottom: 30px; // Espace entre les colonnes (ajustez selon vos besoins)
+    }
+  }*/
+
+
+/* Additional Styles */
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody + tbody {
+    border-top: 2px solid #dee2e6;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.3rem;
+}
+
+.table th, .table td {
+    padding: 0.75rem;
+    //vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+thead.thead-light th {
+    color: #495057;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-nowrap {
+    white-space: nowrap !important;
+}
+
+.text-wrap {
+    white-space: normal !important;
+}
+
+
+.selected-iteration {
+    background-color: #d32f2f;
+    color: white;
+    border-color: #d32f2f;
+  }
+
+
+  /* Collapse container */
+.collapse-container {
+    overflow: hidden;
+  }
+  
+  /* Collapsible content */
+  .collapse-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  
+  /* Expanded state */
+  .expanded .collapse-content {
+    max-height: 500px; /* Adjust the max-height as needed */
+  }
+  
+  /* Button styling */
+  .toggle-button {
+    text-align: center;
+    width: 160px;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  /* Button container */
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  /* Collapse button */
+  .collapse-button {
+    text-align: center;
+    width: 140px;
+    display: block;
+  }
+  
+  /* Style for the chevron icon */
+  .fa {
+    font-size: 1rem;
+    margin-left: 5px;
+  }
+  
+  /* Styling for the collapsed and expanded states */
+  .collapse-header.collapsed .fa-chevron-down {
+    display: inline-block;
+  }
+  
+  .collapse-header .fa-chevron-up {
+    display: none;
+  }
+
+.badge-outline {
+    color: #040411 ;
+    border: 1px solid #040411;
+    background-color: transparent;
+}
+
+.float-right {
+    float: right !important;
+}
+
+/*.badge-success {
+    color: #fff;
+    background-color: #28a745;
+} */
+
+.badge {
+    display: inline-block;
+    padding: .25em .4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25rem;
+}
+
+@media (min-width: 992px) {
+    .float-lg-right {
+        float: right !important;
+    }
+}
+
+.custom-size {
+    font-size: 100px;
+    margin-right: 50px;
+    margin-bottom: 30px;
+}
+
+.fa1 {
+    transform: rotate(90deg);
+}
+
+
