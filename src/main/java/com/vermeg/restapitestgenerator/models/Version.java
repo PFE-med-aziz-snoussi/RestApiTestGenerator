@@ -3,7 +3,7 @@ package com.vermeg.restapitestgenerator.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,10 +27,14 @@ public class Version {
     private Project project;
 
     @OneToMany(mappedBy = "version", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Change> changes;
+    private List<Change> changes = new ArrayList<>();
 
     @OneToMany(mappedBy = "version", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Execution> executions ;
+    private List<Execution> executions = new ArrayList<>();
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public Version() {
     }
@@ -39,6 +43,17 @@ public class Version {
         this.fichierOpenAPI = fichierOpenAPI;
         this.fichierPostmanCollection = fichierPostmanCollection;
         this.project = project;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     // Getters and setters
@@ -88,6 +103,14 @@ public class Version {
 
     public void setExecutions(List<Execution> executions) {
         this.executions = executions;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
     public void addChange(Change change) {

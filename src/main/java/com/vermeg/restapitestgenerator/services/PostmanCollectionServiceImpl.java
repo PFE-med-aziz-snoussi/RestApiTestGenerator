@@ -1,28 +1,26 @@
 package com.vermeg.restapitestgenerator.services;
 
 import com.vermeg.restapitestgenerator.models.PostmanCollection;
+import com.vermeg.restapitestgenerator.models.RequestBodyDTO;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.security.SecureRandom;
 import java.util.Base64;
 import com.vermeg.restapitestgenerator.models.PostmanCollection.*;
 
-import java.util.regex.Pattern;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -41,6 +39,7 @@ import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import com.github.javafaker.Faker;
 
 @Service
 public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
@@ -88,7 +87,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
             return null;
         }
     }
-    public  String generatePostmanCollection(String OpenAPIFileName, String outputFileName) {
+    public  String generatePostmanCollection(String OpenAPIFileName, String outputFileName,RequestBodyDTO requestBodyTDO) {
         File directory = new File("public");
         String openApiFilePath = directory.getAbsolutePath()+File.separator+"openapifiles"+File.separator+OpenAPIFileName;
 
@@ -110,6 +109,32 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
             postmanCollection.setInfo(new Info());
             postmanCollection.getInfo().setName("API Collection");
             postmanCollection.getInfo().setSchema("https://schema.getpostman.com/json/collection/v2.1.0/collection.json");
+
+            if ("oauth2".equals(requestBodyTDO.getAuthType()) || "basic".equals(requestBodyTDO.getAuthType())) {
+                String AuthScript = generateJavaScriptCode(requestBodyTDO);
+                Event ev = new Event();
+                ev.setListen("prerequest");
+                Script testScAuth = new Script();
+                testScAuth.setType("text/javascript");
+                testScAuth.setExec(new String[]{AuthScript});
+                ev.setScript(testScAuth);
+
+                if (postmanCollection.getEvent() == null) {
+                    postmanCollection.setEvent(new ArrayList<>());
+                }
+                Auth authe = new Auth();
+                List<AuthKeyValue> bearerList = new ArrayList<>();
+                AuthKeyValue bearerToken = new AuthKeyValue();
+                bearerToken.setKey("token");
+                bearerToken.setValue("{{access_token}}");
+                bearerToken.setType("string");
+                bearerList.add(bearerToken);
+                authe.setBearer(bearerList);
+                authe.setType("bearer");
+                postmanCollection.getEvent().add(ev);
+                postmanCollection.setAuth(authe);
+            }//access_token
+
             for (String path : pathItems.keySet()) {
                 PathItem pathItem = pathItems.get(path);
                 Map<PathItem.HttpMethod, Operation> httpMethods = pathItem.readOperationsMap();
@@ -138,8 +163,8 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                                     firstKey = keys.iterator().next();
                                 }
                             }
-                            Auth auth = generateAuth(openAPI.getComponents().getSecuritySchemes(), firstKey);
-                            request.setAuth(auth);
+                            //Auth auth = generateAuth(openAPI.getComponents().getSecuritySchemes(), firstKey);
+                            //request.setAuth(auth);
                             if (responseKey.equals("default")||(Integer.parseInt(responseKey) >= 200 && Integer.parseInt(responseKey) < 300)) {
 
                                 String withDoubleBraces = path.replaceAll("\\{([^}]*)\\}", "{{$1}}");
@@ -311,8 +336,8 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                                     firstKey = keys.iterator().next();
                                 }
                             }
-                            Auth auth = generateAuth(openAPI.getComponents().getSecuritySchemes(), firstKey);
-                            request.setAuth(auth);
+                            //Auth auth = generateAuth(openAPI.getComponents().getSecuritySchemes(), firstKey);
+                            //request.setAuth(auth);
                             if (responseKey.equals("default")||(Integer.parseInt(responseKey) >= 200 && Integer.parseInt(responseKey) < 300)) {
 
 
@@ -683,8 +708,8 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                                     firstKey = keys.iterator().next();
                                 }
                             }
-                            Auth auth = generateAuth(openAPI.getComponents().getSecuritySchemes(), firstKey);
-                            request.setAuth(auth);
+                            //Auth auth = generateAuth(openAPI.getComponents().getSecuritySchemes(), firstKey);
+                            //request.setAuth(auth);
                             if (responseKey.equals("default")||(Integer.parseInt(responseKey) >= 200 && Integer.parseInt(responseKey) < 300)) {
 
 
@@ -882,6 +907,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
     public  Auth generateAuth(Map<String, SecurityScheme> securitySchemas,String TypeAuth) {
         Auth auth = new Auth();
+        Faker faker = new Faker();
 
         if (securitySchemas != null) {
             for (Map.Entry<String, SecurityScheme> entry : securitySchemas.entrySet()) {
@@ -963,13 +989,13 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                         List<AuthKeyValue> basicList = new ArrayList<>();
                         AuthKeyValue basicUsername = new AuthKeyValue();
                         basicUsername.setKey("username");
-                        basicUsername.setValue(randomString(10));
+                        basicUsername.setValue(faker.name().username());
                         basicUsername.setType("string");
                         basicList.add(basicUsername);
 
                         AuthKeyValue basicPassword = new AuthKeyValue();
                         basicPassword.setKey("password");
-                        basicPassword.setValue(randomString(10));
+                        basicPassword.setValue(generateRandomPassword());
                         basicPassword.setType("string");
                         basicList.add(basicPassword);
 
@@ -1031,7 +1057,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
                         AuthKeyValue jwtSecret = new AuthKeyValue();
                         jwtSecret.setKey("secret");
-                        jwtSecret.setValue(randomString(10));
+                        jwtSecret.setValue(faker.internet().password(10, 20));
                         jwtSecret.setType("string");
                         jwtList.add(jwtSecret);
 
@@ -1048,6 +1074,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
     public  Auth generateFakeAuth(Map<String, SecurityScheme> securitySchemas,String TypeAuth) {
         Auth auth = new Auth();
+        Faker faker = new Faker();
 
         if (securitySchemas != null) {
             for (Map.Entry<String, SecurityScheme> entry : securitySchemas.entrySet()) {
@@ -1129,13 +1156,13 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                         List<AuthKeyValue> basicList = new ArrayList<>();
                         AuthKeyValue basicUsername = new AuthKeyValue();
                         basicUsername.setKey("username");
-                        basicUsername.setValue(randomString(10));
+                        basicUsername.setValue(faker.name().username());
                         basicUsername.setType("string");
                         basicList.add(basicUsername);
 
                         AuthKeyValue basicPassword = new AuthKeyValue();
                         basicPassword.setKey("password");
-                        basicPassword.setValue(randomString(10));
+                        basicPassword.setValue(generateRandomPassword());
                         basicPassword.setType("string");
                         basicList.add(basicPassword);
 
@@ -1197,7 +1224,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
                         AuthKeyValue jwtSecret = new AuthKeyValue();
                         jwtSecret.setKey("secret");
-                        jwtSecret.setValue(randomString(10));
+                        jwtSecret.setValue(faker.internet().password(10, 20));
                         jwtSecret.setType("string");
                         jwtList.add(jwtSecret);
 
@@ -1211,7 +1238,6 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
         return auth;
     }
-
 
     public  String generateBearerToken() {
         SecureRandom secureRandom = new SecureRandom();
@@ -1512,14 +1538,18 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
         return queryParamsString.toString();
     }
 
-    public  Object generateRandomValue(Schema schema, Map<String, Schema> schemas,String propertyName) {
-        java.util.Random random = new Random();
+    public Object generateRandomValue(Schema schema, Map<String, Schema> schemas, String propertyName) {
+        Random random = new Random();
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        Faker faker = new Faker();
+
         if (schema.get$ref() != null) {
             String ref = schema.get$ref();
             ref = ref.substring(ref.lastIndexOf("/") + 1); // Extract the referenced schema name
             Schema refSchema = schemas.get(ref);
             if (refSchema != null) {
-                return generateRandomValue(refSchema, schemas,propertyName);
+                return generateRandomValue(refSchema, schemas, propertyName);
             }
         } else if ("object".equals(schema.getType())) {
             Map<String, Object> randomObject = new LinkedHashMap<>();
@@ -1528,33 +1558,38 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                 for (Map.Entry<String, Schema> entry : properties.entrySet()) {
                     String subPropertyName = entry.getKey();
                     Schema propertySchema = entry.getValue();
-                    randomObject.put(subPropertyName, generateRandomValue(propertySchema, schemas,subPropertyName));
+                    randomObject.put(subPropertyName, generateRandomValue(propertySchema, schemas, subPropertyName));
                 }
             }
             return randomObject;
         } else if (schema.getType() != null) {
             switch (schema.getType()) {
                 case "string":
-                    if ("date".equals(schema.getFormat()) || "date-time".equals(schema.getFormat())) {
-                        return generateRandomDateTimeString();
+                    if ("date".equals(schema.getFormat())) {
+                        return dateFormatter.format(faker.date().past(365, TimeUnit.DAYS)); // Example: Random past date within the last year
+                    } else if ("date-time".equals(schema.getFormat())) {
+                        return dateTimeFormatter.format(faker.date().past(365, TimeUnit.DAYS)); // Example: Random past date-time within the last year
                     } else if (propertyName != null && propertyName.toLowerCase().contains("phone")) {
-                        return generateRandomPhoneNumber();
+                        int length = faker.number().numberBetween(8, 11);
+                        return faker.number().digits(length);
                     } else if (schema.getEnum() != null && !schema.getEnum().isEmpty()) {
                         List<String> enumValues = schema.getEnum();
                         return enumValues.get(random.nextInt(enumValues.size()));
                     } else if (propertyName != null && propertyName.toLowerCase().contains("email")) {
-                        return generateRandomEmailAddress();
-                    }else {
-                        return randomString(10);
+                        return faker.internet().emailAddress();
+                    } else if (propertyName != null && propertyName.toLowerCase().contains("password")) {
+                        return faker.internet().password(8, 20, true, true, true);
+                    } else {
+                        return faker.lorem().word();
                     }
                 case "integer":
-                    return Math.abs(random.nextInt());
+                    return faker.number().numberBetween(1, Integer.MAX_VALUE);
                 case "float":
-                    return Math.abs(random.nextFloat());
+                    return (float) faker.number().randomDouble(2, 1, 100); // Adjusted range for practical use
                 case "double":
-                    return Math.abs(random.nextDouble());
+                    return faker.number().randomDouble(2, 1,100);
                 case "boolean":
-                    return true;
+                    return faker.bool().bool();
                 case "array":
                     List<Object> randomArray = new ArrayList<>();
                     int numItems = 1;
@@ -1562,28 +1597,10 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                         ArraySchema arraySchema = (ArraySchema) schema;
                         Schema<?> itemSchema = arraySchema.getItems();
                         if (itemSchema != null) {
-                            if (itemSchema.get$ref() != null) {
-                                String ref = itemSchema.get$ref();
-                                ref = ref.substring(ref.lastIndexOf("/") + 1); // Extract the referenced schema name
-                                Schema refSchema = schemas.get(ref);
-                                if (refSchema != null && refSchema.getProperties() != null) {
-                                    for (int i = 0; i < refSchema.getProperties().size(); i++) {
-                                        // Generate a random object for each item in the array
-                                        Map<String, Object> randomSubObject = new LinkedHashMap<>();
-                                        for (Object subPropertyName : refSchema.getProperties().keySet()) {
-                                            Schema propertySchema = (Schema) refSchema.getProperties().get(subPropertyName);
-                                            randomSubObject.put((String)subPropertyName, generateRandomValue(propertySchema, schemas,(String)subPropertyName));
-                                        }
-                                        randomArray.add(randomSubObject);
-                                    }
-                                    return randomArray;
-                                }
-                            } else {
-                                for (int i = 0; i < numItems; i++) {
-                                    randomArray.add(generateRandomValue(itemSchema, schemas,null));
-                                }
-                                return randomArray;
+                            for (int i = 0; i < numItems; i++) {
+                                randomArray.add(generateRandomValue(itemSchema, schemas, null));
                             }
+                            return randomArray;
                         }
                     }
                     break;
@@ -1701,6 +1718,8 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                     // Check if propertyName contains "id", and add "0" as the value
                     if (propertyName.toLowerCase().contains("id")) {
                         propertyValue = "0";
+                        //propertyValue = "{{" + tagPrefix + parentPropertyName + propertyName + "}}";
+
                     } else {
                         // Otherwise, add the placeholder value
                         if (!Objects.equals(parentPropertyName, tagPrefix)) {
@@ -1716,6 +1735,26 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
         return requestBodyObject;
     }
 
+    public String generateRandomPassword() {
+        Faker faker = new Faker();
+        String upperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lowerCaseLetters = upperCaseLetters.toLowerCase();
+        String numbers = "0123456789";
+        String specialChars = "!@#$%^&*()-_=+<>?";
+        String allChars = upperCaseLetters + lowerCaseLetters + numbers + specialChars;
+        Random random = new SecureRandom();
+        int length = faker.number().numberBetween(8, 16);
+
+        StringBuilder password = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(allChars.length());
+            password.append(allChars.charAt(index));
+        }
+
+        return password.toString();
+    }
+
+    /*
     public  String randomString(int length) {
         java.util.Random random = new Random();
         String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -1725,17 +1764,14 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
             sb.append(characters.charAt(randomIndex));
         }
         return sb.toString();
-    }
+    } */
 
-    public  String generateRandomPhoneNumber() {
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < 8; i++) {
-            sb.append(random.nextInt(10)); // Append a random digit (0-9)
-        }
-        return sb.toString();
+    public String generateRandomPhoneNumber() {
+        Faker faker = new Faker();
+        int length = faker.number().numberBetween(8, 11);
+        return faker.number().digits(length);
     }
-
+    /*
     public  String generateRandomEmailAddress() {
         Random random = new Random();
         String[] domains = {"gmail.com", "hotmail.fr", "vermeg.com", "esprit.tn", "yahoo.com", "gmx.de"};
@@ -1750,7 +1786,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return dateFormat.format(randomDate);
-    }
+    } */
     public  JsonElement toJsonElement(Object value) {
         if (value instanceof String) {
             return new JsonPrimitive((String) value);
@@ -2330,4 +2366,84 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
                 "    }\n" +
                 "});\n";
     }
+
+    public String generateBasicAuthJavaScript(String authFormUrl, String username, String password) {
+        // Encode username and password for basic authentication
+        String encodedCredentials = Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+
+        // Construct the JavaScript code snippet for basic authentication
+        return "const authFormUrl = \"" + authFormUrl + "\";\n" +
+                "const username = \"" + username + "\";\n" +
+                "const password = \"" + password + "\";\n" +
+                "const encodedCredentials = \"" + encodedCredentials + "\";\n" +
+                "\n" +
+                "pm.sendRequest({\n" +
+                "    url: authFormUrl,\n" +
+                "    method: 'GET',\n" +
+                "    header: {\n" +
+                "        'Authorization': 'Basic ' + encodedCredentials\n" +
+                "    }\n" +
+                "}, function (err, res) {\n" +
+                "    if (err) {\n" +
+                "        console.error(err);\n" +
+                "        return;\n" +
+                "    }\n" +
+                "    pm.environment.set(\"access_token\", res.json().token);\n" +
+                "});";
+    }
+
+    public String generateOAuth2JavaScript(String authFormUrl, String clientId, String clientSecret) {
+        // Construct the JavaScript code snippet for OAuth2 authentication
+        return "const authFormUrl = \"" + authFormUrl + "\";\n" +
+                "const clientId = \"" + clientId + "\";\n" +
+                "const clientSecret = \"" + clientSecret + "\";\n" +
+                "\n" +
+                "const tokenRequest = {\n" +
+                "    url: authFormUrl,\n" +
+                "    method: 'POST',\n" +
+                "    header: {\n" +
+                "        'Content-Type': 'application/x-www-form-urlencoded'\n" +
+                "    },\n" +
+                "    body: {\n" +
+                "        mode: 'urlencoded',\n" +
+                "        urlencoded: [\n" +
+                "            { key: 'grant_type', value: 'client_credentials', disabled: false },\n" +
+                "            { key: 'client_id', value: clientId, disabled: false },\n" +
+                "            { key: 'client_secret', value: clientSecret, disabled: false }\n" +
+                "        ]\n" +
+                "    }\n" +
+                "};\n" +
+                "\n" +
+                "pm.sendRequest(tokenRequest, function (err, res) {\n" +
+                "    if (err) {\n" +
+                "        console.error(err);\n" +
+                "        return;\n" +
+                "    }\n" +
+                "    const token = res.json().access_token;\n" +
+                "    if (token) {\n" +
+                "        pm.environment.set(\"access_token\", token);\n" +
+                "    } else {\n" +
+                "        console.error(\"Access token not found in response.\");\n" +
+                "    }\n" +
+                "});";
+    }
+
+    public String generateJavaScriptCode(RequestBodyDTO requestBody) {
+        String authType = requestBody.getAuthType();
+        String authFormUrl = requestBody.getAuthFormUrl();
+        String username = requestBody.getUsername();
+        String password = requestBody.getPassword();
+        String clientId = requestBody.getClientId();
+        String clientSecret = requestBody.getClientSecret();
+
+        if ("basic".equalsIgnoreCase(authType)) {
+            return generateBasicAuthJavaScript(authFormUrl, username, password);
+        } else if ("oauth2".equalsIgnoreCase(authType)) {
+            return generateOAuth2JavaScript(authFormUrl, clientId, clientSecret);
+        } else {
+            throw new IllegalArgumentException("Invalid authentication type: " + authType);
+        }
+    }
+
+
 }

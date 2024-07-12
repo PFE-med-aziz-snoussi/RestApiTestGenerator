@@ -1,6 +1,7 @@
 package com.vermeg.restapitestgenerator.controllers;
 
 import com.vermeg.restapitestgenerator.models.ERole;
+import com.vermeg.restapitestgenerator.models.Gender;
 import com.vermeg.restapitestgenerator.models.Role;
 import com.vermeg.restapitestgenerator.models.User;
 import com.vermeg.restapitestgenerator.payload.response.MessageResponse;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -61,7 +64,6 @@ public class UserController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        // Create a new user instance
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()),
@@ -168,7 +170,7 @@ public class UserController {
             _user.setGender(user.getGender());
             _user.setImageName(user.getImageName());
             if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                _user.setPassword(user.getPassword());
+                _user.setPassword(encoder.encode(user.getPassword()));
             }
 
             User updatedUser = userRepository.save(_user);
@@ -248,6 +250,52 @@ public class UserController {
     public ResponseEntity<Resource> downloadImage(@PathVariable String imageName) {
         try {
             Path filePath = Paths.get("public/images/").resolve(imageName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = Files.probeContentType(filePath);
+
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (IOException ex) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @GetMapping("/photo")
+    public ResponseEntity<Resource> getCurrentUserPhoto() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username;
+
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        } else {
+            username = authentication.getPrincipal().toString();
+        }
+
+        Optional<User> userOpt = userService.getUserByUsername(username);
+        if (!userOpt.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        User user = userOpt.get();
+        String photoName = user.getImageName();
+        if (photoName == null || photoName.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            Path filePath = Paths.get("public/images/").resolve(photoName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {

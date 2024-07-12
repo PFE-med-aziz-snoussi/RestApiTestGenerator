@@ -65,6 +65,8 @@ public class WebSecurityConfig {
                         auth.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/user/**").permitAll()
                                 .requestMatchers("/api/project/**").permitAll()
+                                .requestMatchers("/api/versions/**").permitAll()
+                                .requestMatchers("/api/statistics/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .anyRequest().authenticated()
                 ).cors(cors -> cors.configurationSource(corsConfigurationSource()));

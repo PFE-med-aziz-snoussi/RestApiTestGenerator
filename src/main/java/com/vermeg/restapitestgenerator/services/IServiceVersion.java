@@ -1,5 +1,6 @@
 package com.vermeg.restapitestgenerator.services;
 
+import com.vermeg.restapitestgenerator.models.Project;
 import com.vermeg.restapitestgenerator.models.Version;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface IServiceVersion {
     void deleteVersion(Long id);
     List<Version> getVersionsByProjectId(Long projectId);
 
-}
+    Project findProjectByVersionId(Long versionId);
+
+    }

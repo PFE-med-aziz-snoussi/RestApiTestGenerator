@@ -36,7 +36,7 @@ import org.springframework.http.MediaType;
 public class ProjectController {
 
     @Autowired
-    IProjectService projectService;
+    ProjectServiceImpl projectService;
     @Autowired
     UserDetailsServiceImpl userDetailsService;
     @Autowired
@@ -72,15 +72,25 @@ public class ProjectController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserName = authentication.getName();
         Optional<User> optionalUser = userDetailsService.getUserByUsername(currentUserName);
+
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
         User currentUser = optionalUser.get();
-        List<Project> projects = projectService.getProjectsByUser(currentUser);
+        List<Project> projects;
+
+        if (authentication.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_USER"))) {
+            projects = projectService.getProjectsByUser(currentUser);
+        } else if (authentication.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"))) {
+            projects = projectService.getAllProjects();
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
 
         return ResponseEntity.ok(projects);
     }
+
 
     @GetMapping("/allByAdmin")
     @PreAuthorize("hasRole('ADMIN')")
@@ -129,11 +139,11 @@ public class ProjectController {
                 String fichierPostmanCollection = version.getFichierPostmanCollection();
 
                 if (fichierOpenAPI != null) {
-                    Path openAPIFilePath = Paths.get("public/").resolve(fichierOpenAPI).normalize();
+                    Path openAPIFilePath = Paths.get("public/openapifiles/").resolve(fichierOpenAPI).normalize();
                     Files.deleteIfExists(openAPIFilePath);
                 }
                 if (fichierPostmanCollection != null) {
-                    Path postmanCollectionFilePath = Paths.get("public/").resolve(fichierPostmanCollection).normalize();
+                    Path postmanCollectionFilePath = Paths.get("public/collections/").resolve(fichierPostmanCollection).normalize();
                     Files.deleteIfExists(postmanCollectionFilePath);
                 }
 
@@ -141,7 +151,7 @@ public class ProjectController {
                 for (Execution execution : executions) {
                     String fichierResultCollection = execution.getFichierResultCollection();
                     if (fichierResultCollection != null) {
-                        Path resultCollectionFilePath = Paths.get("public/").resolve(fichierResultCollection).normalize();
+                        Path resultCollectionFilePath = Paths.get("public/executions/").resolve(fichierResultCollection).normalize();
                         Files.deleteIfExists(resultCollectionFilePath);
                     }
                 }
@@ -152,6 +162,55 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting project and files.");
         }
     }
+
+    @PostMapping("/deleteMultiple")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> deleteMultipleProjects(@RequestBody List<Project> projects) {
+        List<String> failedDeletions = new ArrayList<>();
+        for (Project project : projects) {
+            try {
+                Optional<Project> projectOptional = projectService.getProjectById(project.getId());
+                if (projectOptional.isEmpty()) {
+                    failedDeletions.add("Project with ID " + project.getId() + " not found");
+                    continue;
+                }
+                Project existingProject = projectOptional.get();
+                List<Version> versions = existingProject.getVersions();
+
+                for (Version version : versions) {
+                    String fichierOpenAPI = version.getFichierOpenAPI();
+                    String fichierPostmanCollection = version.getFichierPostmanCollection();
+
+                    if (fichierOpenAPI != null) {
+                        Path openAPIFilePath = Paths.get("public/openapifiles/").resolve(fichierOpenAPI).normalize();
+                        Files.deleteIfExists(openAPIFilePath);
+                    }
+                    if (fichierPostmanCollection != null) {
+                        Path postmanCollectionFilePath = Paths.get("public/collections/").resolve(fichierPostmanCollection).normalize();
+                        Files.deleteIfExists(postmanCollectionFilePath);
+                    }
+
+                    List<Execution> executions = version.getExecutions();
+                    for (Execution execution : executions) {
+                        String fichierResultCollection = execution.getFichierResultCollection();
+                        if (fichierResultCollection != null) {
+                            Path resultCollectionFilePath = Paths.get("public/executions/").resolve(fichierResultCollection).normalize();
+                            Files.deleteIfExists(resultCollectionFilePath);
+                        }
+                    }
+                }
+                projectService.deleteProject(existingProject.getId());
+            } catch (Exception e) {
+                failedDeletions.add("Failed to delete project with ID " + project.getId() + ": " + e.getMessage());
+            }
+        }
+        if (failedDeletions.isEmpty()) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(failedDeletions);
+        }
+    }
+
 
 
     @PostMapping("/addVersion/{projectId}")
@@ -255,17 +314,21 @@ public class ProjectController {
         }
     }
 
-
-    @PostMapping("/upload")
+    @PostMapping("/generatepostmancoll/{projectId}/{versionId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> GeneratePostmanCollectionFile(@RequestParam("projectId") Long projectId,
-                                                         @RequestParam("versionId") Long versionId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserName = authentication.getName();
+    public ResponseEntity<?> GeneratePostmanCollectionFile(@PathVariable("projectId") Long projectId,
+                                                           @PathVariable("versionId") Long versionId,
+                                                           @RequestBody(required = false) RequestBodyDTO requestBody) {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User is not authenticated.");
+        }
+
+        String currentUserName = authentication.getName();
         Optional<User> optionalUser = userDetailsService.getUserByUsername(currentUserName);
         if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
 
         Project project = projectService.getProjectById(projectId).orElse(null);
@@ -278,16 +341,14 @@ public class ProjectController {
             return ResponseEntity.notFound().build();
         }
 
-        String openApiFilePath = "/public/openapifiles/" + version.getFichierOpenAPI();
-        String postCollName = "Postman_Collection_" + optionalUser.get().getId() + "_" + project.getId() + "_"+version.getId()+".json";
+        if (requestBody.getAuthType().equals("none")) {
+            requestBody = new RequestBodyDTO();
+        }
+
+        String postCollName = "Postman_Collection_" + optionalUser.get().getId() + "_" + project.getId() + "_" + version.getId() + ".json";
 
         try {
-            // Read the YAML content from the file
-            //Path path = Paths.get(openApiFilePath);
-            //String yamlContent = Files.readString(path, StandardCharsets.UTF_8);
-
-            // Generate the Postman collection file
-            String postmanCollectionFileName = postmanCollectionService.generatePostmanCollection(version.getFichierOpenAPI(), postCollName);
+            String postmanCollectionFileName = postmanCollectionService.generatePostmanCollection(version.getFichierOpenAPI(), postCollName, requestBody);
 
             // Update the version with the Postman collection file name
             version.setFichierPostmanCollection(postmanCollectionFileName);
@@ -295,10 +356,10 @@ public class ProjectController {
 
             return ResponseEntity.ok().body(version);
         } catch (Exception e) {
-            //System.out.println(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to read the YAML file.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate the Postman collection.");
         }
     }
+
 
     @PostMapping("/newman/{projectId}/{versionId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -388,6 +449,51 @@ public class ProjectController {
         }
     }
 
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @GetMapping("/download/openapi-file/{projectId}/{versionId}")
+    public ResponseEntity<Resource> downloadOpenAPIFile(@PathVariable Long projectId, @PathVariable Long versionId) {
+        Optional<Project> projectOpt = projectService.getProjectById(projectId);
+        if (projectOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        Project project = projectOpt.get();
+
+        Optional<Version> versionOpt = project.getVersions().stream()
+                .filter(v -> v.getId().equals(versionId))
+                .findFirst();
+
+        if (versionOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        String fileName = versionOpt.get().getFichierOpenAPI();
+
+        if (fileName == null || fileName.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        try {
+            Path filePath = Paths.get("public/openapifiles/").resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = Files.probeContentType(filePath);
+
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+                return ResponseEntity.ok()
+                        .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping("/result-postman-collection/{projectId}/{versionId}/{executionId}")
@@ -453,6 +559,44 @@ public class ProjectController {
         }
     }
 
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @GetMapping("/result-postman-collection-by-execution/{executionId}")
+    public ResponseEntity<?> getResultPostmanCollectionByExecutionId(@PathVariable Long executionId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+
+        Optional<Execution> executionOpt = executionService.getExecutionById(executionId);
+        if (executionOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Execution not found");
+        }
+        Execution execution = executionOpt.get();
+
+        String resultFileName = execution.getFichierResultCollection();
+        if (resultFileName == null || resultFileName.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Result file not found");
+        }
+
+        try {
+            Path filePath = Paths.get("public/executions/").resolve(resultFileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not readable");
+            }
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error accessing file");
+        }
+    }
+
 
     @DeleteMapping("/executions/{executionId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -475,6 +619,21 @@ public class ProjectController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while deleting execution and file.");
         }
+    }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PostMapping("/{projectId}/versions")
+    public ResponseEntity<?> addVersionToProject(@PathVariable Long projectId, @RequestBody Version version) {
+        Optional<Project> projectOpt = projectService.getProjectById(projectId);
+        if (projectOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project not found");
+        }
+        Project project = projectOpt.get();
+        version.setProject(project);
+        Version createdVersion = versionService.createVersion(version);
+        project.getVersions().add(createdVersion);
+        projectService.updateProject(project.getId(), project);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdVersion);
     }
 
 

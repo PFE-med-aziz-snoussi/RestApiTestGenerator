@@ -1,5 +1,6 @@
 package com.vermeg.restapitestgenerator.services;
 
+import com.vermeg.restapitestgenerator.models.Project;
 import com.vermeg.restapitestgenerator.models.Version;
 import com.vermeg.restapitestgenerator.repository.VersionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,11 @@ public class VersionServiceImpl implements IServiceVersion {
 
     public List<Version> getVersionsByProjectId(Long projectId) {
         return versionRepository.findByProjectId(projectId);
+    }
+
+    @Override
+    public Project findProjectByVersionId(Long versionId) {
+        return versionRepository.findProjectByVersionId(versionId);
     }
 }
 
