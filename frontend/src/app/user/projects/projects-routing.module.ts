@@ -5,8 +5,9 @@ import { VersionsComponent } from './versions/versions.component';
 
 @NgModule({
 	imports: [RouterModule.forChild([
-		{ path: '', component: ProjectsComponent },
-		{ path: ':projectId',  component: VersionsComponent},
+		{ path: 'projects', component: ProjectsComponent },
+		{ path: 'versions',  component: VersionsComponent},
+		{ path: 'versions/:projectId',  component: VersionsComponent},
 		{ path: 'version/:projectId/:id',  loadChildren: () => import('./version-form/version-form.module').then(m => m.ProjectFormModule)},
 		
 

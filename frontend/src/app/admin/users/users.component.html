@@ -5,24 +5,23 @@
             <p-toolbar styleClass="mb-4">
                 <ng-template pTemplate="left">
                     <div class="my-2">
-                        <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
-                        <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedUsers()" [disabled]="!selectedUsers || !selectedUsers.length"></button>
+                        <button pButton pRipple label="Nouveau" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+                        <button pButton pRipple label="Supprimer" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedUsers()" [disabled]="!selectedUsers || !selectedUsers.length"></button>
                     </div>
                 </ng-template>
 
                 <ng-template pTemplate="right">
-                    <p-fileUpload mode="basic" accept=".csv" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload>
-                    <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
+                    <button pButton pRipple label="Exporter" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
                 </ng-template>
             </p-toolbar>
 
-            <p-table #dt [value]="users" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['username','email','role','registrationDate','lastLoginDate']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedUsers" selectionMode="multiple" [rowHover]="true" dataKey="id">
+            <p-table #dt [value]="users" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['username','email','role','registrationDate','lastLoginDate']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} entrées" [(selection)]="selectedUsers" selectionMode="multiple" [rowHover]="true" dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                        <h5 class="m-0">Manage Users</h5>
+                        <h5 class="m-0">Gérer les utilisateurs</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..."  class="w-full sm:w-auto"/>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Rechercher..." class="w-full sm:w-auto"/>
                         </span>
                     </div>
                 </ng-template>
@@ -33,11 +32,10 @@
                         </th>
                         <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
                         <th pSortableColumn="imageName">Image <p-sortIcon field="imageName"></p-sortIcon></th>
-                        <th pSortableColumn="username">Username <p-sortIcon field="username"></p-sortIcon></th>
+                        <th pSortableColumn="username">Nom d'utilisateur <p-sortIcon field="username"></p-sortIcon></th>
                         <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
                         <th pSortableColumn="gender">Genre <p-sortIcon field="gender"></p-sortIcon></th>
-                        <th pSortableColumn="role">Role <p-sortIcon field="role"></p-sortIcon></th>
-                      <!--  <th pSortableColumn="registrationDate">Date d'inscription <p-sortIcon field="registrationDate"></p-sortIcon></th> -->
+                        <th pSortableColumn="role">Rôle <p-sortIcon field="role"></p-sortIcon></th>
                         <th pSortableColumn="lastLoginDate">Dernière connexion <p-sortIcon field="lastLoginDate"></p-sortIcon></th>
                         <th></th>
                     </tr>
@@ -62,7 +60,7 @@
                         </td>
                         
                         <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Username</span>
+                            <span class="p-column-title">Nom d'utilisateur</span>
                             {{user.username}}
                         </td>
                         <td style="width:14%; min-width:10rem;">
@@ -72,36 +70,25 @@
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Genre</span>
                             <span *ngIf="user.gender === 'HOMME'; else female">
-                                <span class="customer-badge status-new">Male ♂</span>
+                                <span class="customer-badge status-new">Homme ♂</span>
                             </span>
                             <ng-template #female>
-                                <span class="customer-badge status-unqualified">Female ♀</span>
+                                <span class="customer-badge status-unqualified">Femme ♀</span>
                             </ng-template>
                         </td>
                         <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Role</span>
-                            <span *ngIf="user.roles[0].name === 'ROLE_USER'; else admin">
-                                <span class="customer-badge status-qualified">User</span>
+                            <span class="p-column-title">Rôle</span>
+                            <span *ngIf="user?.roles && user.roles[0]?.name === 'ROLE_USER'; else admin">
+                                <span class="customer-badge status-qualified">Utilisateur</span>
                             </span>
                             <ng-template #admin>
                                 <span class="customer-badge status-renewal">Admin</span>
                             </ng-template>
                         </td>
-                        
-                        <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Role</span>
-                            {{ user.roles[0].name === 'ROLE_USER' ? 'Utilisateur' : 'Admin' }}
-                        </td>
-                      <!-- <td style="width:14%; min-width:10rem;">
-                            <span class="p-column-title">Date d'inscription</span>
-                            <span >
-                                {{ user.registrationDate | date:'yyyy MMMM dd' }}
-                            </span>
-                        </td>--> 
                         <td style="width:14%; min-width:10rem;">
                             <span class="p-column-title">Dernière connexion</span>
                             <span>
-                                {{ user.lastLoginDate | date:'yyyy MMMM dd' }}
+                                {{ user.lastLoginDate | date:'dd MMMM yyyy' }}
                             </span>
                         </td>
                         
@@ -115,82 +102,96 @@
                 </ng-template>
             </p-table>
         </div>
-        <p-dialog [(visible)]="userDialog" [style]="{width: '450px'}" header="User Details" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="userDialog" [style]="{width: '450px'}" header="Détails de l'utilisateur" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
-                <div class="field">
-                    <label for="username">Username :</label>
-                    <input type="text" pInputText id="username" name="username" [(ngModel)]="user.username" required minlength="3" maxlength="20" #username="ngModel" [ngClass]="{ 'ng-invalid ng-dirty': submitted && username.invalid }"/>
-                    <p-message *ngIf="submitted && username.errors?.required" class="p-error" text="Field is required."></p-message>
-                    <p-message *ngIf="submitted && username.errors?.minlength" severity="error" text="Username must be at least 3 characters."></p-message>
-                    <p-message *ngIf="submitted && username.errors?.maxlength" severity="error" text="Username must be at most 20 characters."></p-message>
-                </div>
-                
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input type="email" pInputText id="email" [(ngModel)]="user.email" required [ngClass]="{ 'ng-invalid ng-dirty': submitted && f['email'].invalid }"/>
-                    <small *ngIf="submitted && f['email'].errors?.['required']" class="p-error">Email is required.</small>
-                    <small *ngIf="submitted && f['email'].errors?.['email']" class="p-error">Email must be a valid email address.</small>
-                </div>
-                
-                <div class="field" >
-                    <label for="password">Password :</label>
-                    <p-password id="password" [(ngModel)]="user.password" placeholder="Password" [toggleMask]="true" styleClass="mb-5" inputStyleClass="w-full p-3" [ngClass]="{ 'ng-invalid ng-dirty': submitted && f['password'].invalid }" [disabled]="editing"></p-password>
-                    <small *ngIf="submitted && f['password'].errors?.['required']" class="p-error">Password is required.</small>
-                    <small *ngIf="submitted && f['password'].errors?.['minlength']" class="p-error">Password must be at least 6 characters.</small>
-                </div>
-                <div class="field">
-                    <label for="select">Genre :</label>
-                    <div class="form-group">
-                        <label for="gender">Gender</label>
-                        <p-dropdown 
-                            [options]="genderOptions"  
+                <form #userForm="ngForm" (ngSubmit)="saveUser(userForm)">
+                    <div class="field">
+                        <label for="username">Nom d'utilisateur :</label>
+                        <input type="text" pInputText id="username" placeholder="Nom d'utilisateur" name="username" [(ngModel)]="user.username" required minlength="3" maxlength="20" #username="ngModel" [ngClass]="{ 'ng-invalid ng-dirty': username.touched && username.invalid }"/>
+                        <p-message *ngIf="submitted ||username.touched && username.errors?.required" severity="error" text="Champ requis."></p-message>
+                        <p-message *ngIf="username.touched && username.errors?.minlength" severity="error" text="Le nom d'utilisateur doit comporter au moins 3 caractères."></p-message>
+                        <p-message *ngIf="username.touched && username.errors?.maxlength" severity="error" text="Le nom d'utilisateur doit comporter au maximum 20 caractères."></p-message>
+                    </div>
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" pInputText id="email" placeholder="Email" name="email" [(ngModel)]="user.email" required email #email="ngModel" [ngClass]="{ 'ng-invalid ng-dirty': email.touched && email.invalid }"/>
+                        <p-message *ngIf="submitted ||email.touched && email.errors?.required" severity="error" text="Champ requis."></p-message>
+                        <p-message *ngIf="email.touched && email.errors?.email" severity="error" text="L'email doit être une adresse email valide."></p-message>
+                    </div>
+
+                    <div class="field">
+                        <label for="password">Mot de passe :</label>
+                        <div class="p-inputgroup">
+                            <input [type]="showPassword ? 'text' : 'password'" pInputText id="password" placeholder="Mot de passe" name="password" [(ngModel)]="user.password" required minlength="6" #password="ngModel" [ngClass]="{ 'ng-invalid ng-dirty': password.touched && password.invalid }" [disabled]="editing"/>
+                            <button pButton type="button" [icon]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" class="p-button-secondary" (click)="toggleShowPassword()" [disabled]="editing"></button>
+                        </div>                        
+                        <p-message *ngIf="submitted ||password.touched && password.errors?.required" severity="error" text="Mot de passe requis."></p-message>
+                        <p-message *ngIf="password.touched && password.errors?.minlength" severity="error" text="Le mot de passe doit comporter au moins 6 caractères."></p-message>
+                    </div>
+
+                    <div class="field">
+                        <label for="gender">Genre :</label>
+                        <p-dropdown placeholder="Genre"
+                            [options]="genderOptions"
                             [(ngModel)]="user.gender"
                             name="gender"
-                            class="w-full md:w-30rem mb-5"
                             required
                             #gender="ngModel"
-                            [ngClass]="{ 'ng-invalid ng-dirty': submitted && gender.invalid }">
-                        </p-dropdown>
+                            [ngClass]="{ 'ng-invalid ng-dirty': gender.touched && gender.invalid }"></p-dropdown>
+                        <p-message *ngIf="submitted ||gender.touched && gender.errors?.required" severity="error" text="Sélectionnez un genre."></p-message>
                     </div>
-                    <p-message *ngIf="submitted && gender.errors?.required" severity="error" text="Gender is required."></p-message>
-                </div>      
-                <div class="field">
-                    <label for="imageName">Image :</label>
-                    <p-fileUpload mode="basic" name="image" accept="image/*" maxFileSize="1000000" customUpload="true" (uploadHandler)="onUpload($event)" [auto]="true" [disabled]="userImageUploaded"></p-fileUpload>
-                    <label disabled >{{user.imageName}}</label>
-                    <p-message *ngIf="submitted && (!user.imageName || !userImageUploaded)" severity="error" text="Please upload an image."></p-message>
-                </div>
-                
 
-                <span class="p-buttonset">
-                    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-                    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveUser()" [disabled]="!user.username || !user.email || !user.password || !user.gender || !user.imageName"></button>
-                </span>
+    
+                    <div class="field">
+                        <label for="imageName">Image:</label>
+                        <div class="upload-container">
+                            <p-fileUpload
+                                mode="basic"
+                                name="image"
+                                accept="image/*"
+                                maxFileSize="1000000"
+                                customUpload="true"
+                                (uploadHandler)="onUpload($event)"
+                                [auto]="true"
+                                [disabled]="userImageUploaded">
+                            </p-fileUpload>
+                            <label class="file-name">{{user.imageName}}</label>
+                            <ng-container *ngIf="!user?.imageName">
+                                <img src="assets/demo/images/640751.png" alt="640751" class="profile-img" />
+                            </ng-container>
+                            <ng-container *ngIf="user?.imageName">
+                                <img [src]="apiUrl + '/user/download/' + user?.imageName" [alt]="user?.imageName" class="profile-img" />
+                            </ng-container>
+                            <p-message *ngIf="(submitted || fileInputTouched) && !user?.imageName" severity="error" text="Please upload an image."></p-message>
+                        </div>
+                    </div>
+                </form>
+            </ng-template>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple label="Annuler" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton pRipple label="Enregistrer" icon="pi pi-check" class="p-button-text" (click)="saveUser(userForm)" ></button>
             </ng-template>
         </p-dialog>
-        
-          
-
-        <p-dialog [(visible)]="deleteUserDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        <p-dialog [(visible)]="deleteUserDialog" header="Confirmer" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="user">Are you sure you want to delete <b>{{user.username}}</b>?</span>
+                <span *ngIf="user">AÊtes-vous sûr de vouloir supprimer  <b>{{user.username}}</b>?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteUserDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="deleteUserDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDelete()"></button>
             </ng-template>
         </p-dialog>
-
-        <p-dialog [(visible)]="deleteUsersDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        <p-dialog [(visible)]="deleteUsersDialog" header="Confirmer" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span>Are you sure you want to delete selected users?</span>
+                <span>Êtes-vous sûr de vouloir supprimer les utilisateurs sélectionnés ?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteUsersDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="deleteUsersDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDeleteSelected()"></button>
             </ng-template>
         </p-dialog>
-    </div>
+        </div>
 </div>

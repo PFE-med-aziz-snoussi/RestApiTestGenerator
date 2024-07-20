@@ -4,6 +4,7 @@ import com.vermeg.restapitestgenerator.models.ERole;
 import com.vermeg.restapitestgenerator.models.Gender;
 import com.vermeg.restapitestgenerator.models.Role;
 import com.vermeg.restapitestgenerator.models.User;
+import com.vermeg.restapitestgenerator.payload.request.ChangePasswordRequest;
 import com.vermeg.restapitestgenerator.payload.response.MessageResponse;
 import com.vermeg.restapitestgenerator.repository.RoleRepository;
 import com.vermeg.restapitestgenerator.repository.UserRepository;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -73,7 +75,7 @@ public class UserController {
                 signUpRequest.getLastLoginDate());
 
         // Set user roles
-        Set<String> strRoles = signUpRequest.getRole();
+        String strRoles = signUpRequest.getRoles();
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
@@ -81,8 +83,8 @@ public class UserController {
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         } else {
-            strRoles.forEach(role -> {
-                switch (role) {
+
+                switch (strRoles) {
                     case "admin":
                         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Admin Role is not found."));
@@ -96,7 +98,7 @@ public class UserController {
                     default:
                         throw new RuntimeException("Error: Role not found.");
                 }
-            });
+
         }
 
         user.setRoles(roles);
@@ -129,16 +131,44 @@ public class UserController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping("/current")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+    @DeleteMapping("/current/delete")
+    public ResponseEntity<String> deleteCurrentUser(@RequestBody String password) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> userOpt = userRepository.findByUsername(userDetails.getUsername());
 
-        return user.map(value -> {
-            value.setPassword(null);
-            return new ResponseEntity<>(value, HttpStatus.OK);
-        }).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+
+            if (!encoder.matches(password, user.getPassword())) {
+                return new ResponseEntity<>("Invalid password.", HttpStatus.FORBIDDEN);
+            }
+
+            if (user.getImageName() != null && !user.getImageName().isEmpty()) {
+                Path filePath = Paths.get("public/images/").resolve(user.getImageName()).normalize();
+                try {
+                    Files.deleteIfExists(filePath);
+                } catch (IOException e) {
+                    return new ResponseEntity<>("Error deleting image file.", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+    /*
+            if (!userService.deleteUserImage(user)) {
+                return new ResponseEntity<>("Error deleting user image.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }*/
+
+            try {
+                userRepository.delete(user);
+                return new ResponseEntity<>("User deleted successfully.", HttpStatus.NO_CONTENT);
+            } catch (Exception e) {
+                return new ResponseEntity<>("Error deleting user.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
+        }
     }
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
@@ -147,6 +177,9 @@ public class UserController {
 
         if (userData.isPresent()) {
             User _user = userData.get();
+            if (!userService.updateUserImage(_user, user.getImageName())) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             _user.setUsername(user.getUsername());
             _user.setEmail(user.getEmail());
             _user.setGender(user.getGender());
@@ -165,6 +198,9 @@ public class UserController {
 
         if (userData.isPresent()) {
             User _user = userData.get();
+            if (!userService.updateUserImage(_user, user.getImageName())) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             _user.setUsername(user.getUsername());
             _user.setEmail(user.getEmail());
             _user.setGender(user.getGender());
@@ -181,35 +217,27 @@ public class UserController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<HttpStatus> deleteUser(@PathVariable("id") long id) {
-        try {
-            userRepository.deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/deleteMultiple")
-    public ResponseEntity<HttpStatus> deleteUsers(@RequestBody List<Long> ids) {
-        try {
-            System.out.println("Received IDs: " + ids); // For debugging purposes
-
-            userRepository.deleteAllById(ids);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
+    @GetMapping("/current")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<User> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+
+        return user.map(value -> {
+            value.setPassword(null);
+            return new ResponseEntity<>(value, HttpStatus.OK);
+        }).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    /*@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/current/delete")
     public ResponseEntity<HttpStatus> deleteCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
         if (user.isPresent()) {
+            if (!userService.deleteUserImage(user.get())) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             try {
                 userRepository.delete(user.get());
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -219,28 +247,144 @@ public class UserController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }*/
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<HttpStatus> deleteUser(@PathVariable("id") long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            if (!userService.deleteUserImage(user.get())) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            try {
+                userRepository.deleteById(id);
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            } catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/deleteMultiple")
+    public ResponseEntity<HttpStatus> deleteUsers(@RequestBody List<Long> ids) {
+        try {
+            List<User> users = userRepository.findAllById(ids);
+            for (User user : users) {
+                if (!userService.deleteUserImage(user)) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+            userRepository.deleteAllById(ids);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<HttpStatus> uploadImage(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
         try {
             String fileName = StringUtils.cleanPath(file.getOriginalFilename());
             Path uploadPath = Paths.get("public/images/");
+
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
+
             Path filePath = uploadPath.resolve(fileName);
-            Files.copy(file.getInputStream(), filePath);
+
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (IOException ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PostMapping("/upload/current")
+    public ResponseEntity<HttpStatus> uploadCurrentUserImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+            Path uploadPath = Paths.get("public/images/");
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+
+            userService.updateUserProfileImage(username, fileName);
+
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (IOException ex) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @DeleteMapping("/photo/current")
+    public ResponseEntity<HttpStatus> deleteCurrentUserPhoto() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+            Optional<User> optionalUser = userRepository.findByUsername(username);
+            if (!optionalUser.isPresent()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            userService.deleteUserImage(optionalUser.get());
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        if (encoder.matches(request.getOldPassword(), user.getPassword())) {
+            try {
+                user.setPassword(encoder.encode(request.getNewPassword()));
+                userRepository.save(user);
+                return new ResponseEntity<>(HttpStatus.OK);
+            } catch (Exception e) {
+                System.err.println("Error saving user: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while changing the password");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Old password is incorrect");
         }
     }
 

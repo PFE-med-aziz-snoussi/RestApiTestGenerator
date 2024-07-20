@@ -1,75 +1,108 @@
-<div class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden">
-  <div class="flex flex-column align-items-center justify-content-center">
-    <img src="assets/layout/images/logo-dark.svg" alt="Sakai logo" class="mb-5 w-6rem flex-shrink-0">
-    <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%);">
-      <div class="w-full surface-card py-8 px-5 sm:px-8" style="border-radius: 53px">
-        <div class="text-center mb-5">
-          <div class="text-900 text-3xl font-medium mb-3">Sign up to continue</div>
-          <span class="text-600 font-medium">Sign up to continue</span>
-        </div>
+<div class="surface-0 justify-content-center">
+  <div id="home" class="landing-wrapper overflow-hidden">
+    <app-navbar></app-navbar> <!-- Ensure your navbar component is imported and correctly configured -->
 
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
-          <div class="mb-5">
-            <label for="username" class="block text-900 text-xl font-medium mb-2">Username :</label>
-            <input id="username2" type="text" formControlName="username" placeholder="Username" class="w-full md:w-30rem mb-5" style="padding:1rem" [ngClass]="{ 'ng-invalid': f['username'].touched && f['username'].invalid }" pInputText />
-            <div *ngIf="f['username'].touched && f['username'].invalid">
-              <small *ngIf="f['username'].errors?.['required']" id="username-help" class="p-error">Username is required</small>
-              <small *ngIf="f['username'].errors?.['minlength']" id="username-help" class="p-error">Username must be at least 3 characters</small>
-              <small *ngIf="f['username'].errors?.['maxlength']" id="username-help" class="p-error">Username must be at most 20 characters</small>
+    <div id="hero" class="flex flex-column pt-4 px-4 lg:px-8 overflow-hidden"
+      style="background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), radial-gradient(77.36% 256.97% at 77.36% 57.52%, #EEEFAF 0%, #C3E3FA 100%); clip-path: ellipse(150% 87% at 93% 13%);">
+      <div class="mx-4 md:mx-8 mt-0 md:mt-4">
+        <h1 class="text-6xl font-bold text-gray-900 line-height-2"><span class="font-light block">Inscrivez-vous pour continuer</span>Créer un nouveau compte</h1>
+        <!-- Adjusted headline to fit login page context -->
 
+        <div class="surface-card py-8 px-5 sm:px-8 mt-5" style="border-radius: 53px; max-width: 500px; margin: 0 auto;">
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+
+            <div class="mb-5">
+              <label for="username" class="block text-900 text-xl font-medium mb-2">Nom d'utilisateur :</label>
+              <input id="username" type="text" formControlName="username" placeholder="Nom d'utilisateur"
+                class="w-full md:w-80rem mb-5" style="padding: 1rem;" [ngClass]="{ 'ng-invalid': f['username'].touched && f['username'].invalid }"
+                pInputText />
+              <div *ngIf="f['username'].touched && f['username'].invalid">
+                <small *ngIf="f['username'].errors?.['required']" class="p-error">Le nom d'utilisateur est requis</small>
+                <small *ngIf="f['username'].errors?.['minlength']" class="p-error">Le nom d'utilisateur doit comporter au moins 3 caractères</small>
+                <small *ngIf="f['username'].errors?.['maxlength']" class="p-error">Le nom d'utilisateur doit comporter au plus 20 caractères</small>
+              </div>
             </div>
-          </div>
 
-          <div class="mb-5">
-            <label for="email" class="block text-900 text-xl font-medium mb-2">Email :</label>
-            <input id="email" type="email" formControlName="email" placeholder="Email address" class="w-full md:w-30rem mb-5" style="padding:1rem" [ngClass]="{ 'is-invalid': f['email'].touched && f['email'].invalid }" pInputText/>
-            <div *ngIf="f['email'].touched && f['email'].invalid">
-              <small *ngIf="f['email'].errors?.['required']" class="p-error">Email is required</small>
-              <small *ngIf="f['email'].errors?.['email']" class="p-error">Email must be a valid email address</small>
+            <div class="mb-5">
+              <label for="email" class="block text-900 text-xl font-medium mb-2">Email :</label>
+              <input id="email" type="email" formControlName="email" placeholder="Adresse email"
+                class="w-full md:w-80rem mb-5" style="padding: 1rem;" [ngClass]="{ 'is-invalid': f['email'].touched && f['email'].invalid }"
+                pInputText />
+              <div *ngIf="f['email'].touched && f['email'].invalid">
+                <small *ngIf="f['email'].errors?.['required']" class="p-error">L'email est requis</small>
+                <small *ngIf="f['email'].errors?.['email']" class="p-error">L'email doit être une adresse email valide</small>
+              </div>
             </div>
-          </div>
 
-          <div class="mb-5">
-            <label for="password" class="block text-900 font-medium text-xl mb-2">Mot de passe :</label>
-            <p-password id="password1" type="password" formControlName="password" placeholder="Password" [toggleMask]="true"  styleClass="mb-5" inputStyleClass="w-full p-3 md:w-30rem" [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].invalid }" ></p-password>
-            <div *ngIf="f['password'].touched && f['password'].invalid" >
+            <div class="mb-5">
+              <label for="password" class="block text-900 font-medium text-xl mb-2">Mot de passe :</label>
+              <p-password id="password1" type="password" formControlName="password" placeholder="Password" [toggleMask]="true"  styleClass="mb-5" inputStyleClass="w-full p-3 md:w-30rem" [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].invalid }" ></p-password>
+              <div *ngIf="f['password'].touched && f['password'].invalid" >
+              </div>
             </div>
-          </div>
 
-          <div class="mb-5">
-            <label for="gender" class="block text-900 text-xl font-medium mb-2">Genre :</label>
-            <select id="gender" formControlName="gender" class="w-full md:w-30rem mb-5" style="padding:1rem" [ngClass]="{ 'is-invalid': f['gender'].errors?.['required'] }" class="w-full md:w-30rem mb-5 ng-dirty">
-              <option value="">Selectionner votre genre</option>
-              <option value="HOMME">Homme</option>
-              <option value="FEMME">Femme</option>
-            </select>
-            <div *ngIf="f['gender'].touched && f['gender'].invalid">
-              <small *ngIf="f['gender'].errors?.['required']" class="p-error">Gender is required</small>
+            <div class="mb-5">
+              <label for="gender" class="block text-900 text-xl font-medium mb-2">Genre :</label>
+              <select id="gender" formControlName="gender" class="w-full md:w-80rem mb-5" style="padding: 1rem;"
+                [ngClass]="{ 'is-invalid': f['gender'].errors?.['required'] }">
+                <option value="">Sélectionner votre genre</option>
+                <option value="HOMME">Homme</option>
+                <option value="FEMME">Femme</option>
+              </select>
+              <div *ngIf="f['gender'].touched && f['gender'].invalid">
+                <small *ngIf="f['gender'].errors?.['required']" class="p-error">Le genre est requis</small>
+              </div>
             </div>
+
+            <div class="mb-5">
+              <label for="image" class="block text-900 text-xl font-medium mb-2">Image</label>
+              <p-fileUpload mode="basic" name="image" accept="image/*" maxFileSize="1000000" customUpload="true"
+                (uploadHandler)="onUpload($event)" [auto]="true"></p-fileUpload>
+              <div *ngIf="selectedFileName; else noFileSelected" class="mt-2">
+                <small class="text-600">Fichier sélectionné : {{ selectedFileName }}</small>
+              </div>
+              <ng-template #noFileSelected>
+                <small class="text-600">Aucun fichier sélectionné</small>
+              </ng-template>
+            </div>
+
+            <div class="form-group">
+              <button pbutton="" pripple="" [disabled]="registerForm.invalid" label="S'inscrire" icon="pi pi-user"
+                class="p-element p-ripple w-full p-button p-component" ng-reflect-label="S'inscrire"
+                ng-reflect-icon="pi pi-user">
+                <span class="p-button-icon p-button-icon-left " aria-hidden="true"></span>
+                <span class="p-button-label">S'inscrire</span>
+                <span class="p-ink" aria-hidden="true" role="presentation"
+                  style="height: 474px; width: 474px; top: -220.9px; left: -159.6px;"></span>
+              </button>
+            </div>
+
+            <div *ngIf="isSignUpFailed" class="alert alert-warning">
+              L'inscription a échoué!<br />{{ errorMessage }}
+            </div>
+          </form>
+
+          <div class="text-center mb-5">
+            <small>Vous avez déjà un compte ? </small>
+            <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)"
+              [routerLink]="['/login']">Connectez-vous</a>
           </div>
 
-          <div class="mb-5">
-            <label for="imageName" class="block text-900 text-xl font-medium mb-2">Image</label>
-            <input id="imageName" type="text" formControlName="imageName" placeholder="Image Name" class="w-full md:w-30rem mb-5" style="padding:1rem" />
+          <div *ngIf="isSuccessful" class="alert alert-success">
+            Votre inscription est réussie!
           </div>
-
-          <div class="form-group">
-            <button pbutton="" pripple="" [disabled]="registerForm.invalid" label="S'inscrire" icon="pi pi-user" class="p-element p-ripple w-full p-button p-component" ng-reflect-label="S'inscrire" ng-reflect-icon="pi pi-user"><span class="p-button-icon p-button-icon-left " aria-hidden="true"></span><span class="p-button-label" >S'inscrire</span><span class="p-ink" aria-hidden="true" role="presentation" style="height: 474px; width: 474px; top: -220.9px; left: -159.6px;"></span></button>
-
-          </div>
-
-          <div *ngIf="isSignUpFailed" class="alert alert-warning">
-            Signup failed!<br />{{ errorMessage }}
-          </div>
-        </form>
-        <div class="text-center mb-5">
-          <small>Vous avez déjà un compte ? </small>
-          <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)"  [routerLink]="['/login']" >Connectez-vous</a>
-      </div>
-        <div *ngIf="isSuccessful" class="alert alert-success">
-          Your registration is successful!
         </div>
       </div>
     </div>
+    <div class="surface-card py-8 px-5 sm:px-8 mt-5" style="background-color: white; max-width: 100%; margin: 0 auto;">
+    </div>
+    <div class="layout-footer text-center mt-5">
+      <img src="assets/layout/images/LOGO.png" alt="Logo" height="20" class="mr-2"/>
+      <span class="font-medium ml-2 mr-2">RTG</span>
+      <span class="ml-2 mr-2">By</span>
+      <img src="assets/demo/images/Logo-vermeg.png" width="85" alt="Logo" class="mr-2">
+      <span class="ml-2 mr-2">© 2024</span>
+    </div>
+    <br>
   </div>
 </div>

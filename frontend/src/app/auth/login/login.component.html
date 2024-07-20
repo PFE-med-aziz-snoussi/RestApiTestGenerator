@@ -1,47 +1,73 @@
-<div class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden">
-    <div class="flex flex-column align-items-center justify-content-center">
-      <img src="assets/layout/images/{{layoutService.config().colorScheme === 'light' ? 'logo-dark' : 'logo-white'}}.svg" alt="Sakai logo" class="mb-5 w-6rem flex-shrink-0">
-      <div style="border-radius:56px; padding:0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%);">
-        <div class="w-full surface-card py-8 px-5 sm:px-8" style="border-radius:53px">
-          <div class="text-center mb-5">
-            <span class="text-600 font-medium">Se connecter pour continuer</span>
-          </div>
-          <div *ngIf="isLoginFailed" class="text-center mb-5 p-error alert alert-warning">
-            {{ errorMessage }}
-        </div>
+<div class="surface-0 justify-content-center">
+  <div id="home" class="landing-wrapper overflow-hidden">
+    <app-navbar></app-navbar> <!-- Ensure your navbar component is imported and correctly configured -->
+
+    <div id="hero" class="flex flex-column pt-4 px-4 lg:px-8 overflow-hidden"
+      style="background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), radial-gradient(77.36% 256.97% at 77.36% 57.52%, #EEEFAF 0%, #C3E3FA 100%); clip-path: ellipse(150% 87% at 93% 13%);">
+      <div class="mx-4 md:mx-8 mt-0 md:mt-4">
+        <h1 class="text-6xl font-bold text-gray-900 line-height-2"><span class="font-light block">Se connecter pour continuer</span>Connexion à votre compte</h1>
+        <!-- Adjusted headline to fit login page context -->
+
+        <div class="surface-card py-8 px-5 sm:px-8 mt-5" style="border-radius: 53px; max-width: 500px; margin: 0 auto;">
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-            <div class="mb-5">
-              <label for="username1" class="block text-900 text-xl font-medium mb-2">Username :</label>
-              <input id="username1" type="username" formControlName="username" placeholder="Username" class="w-full md:w-30rem mb-5" style="padding:1rem" [ngClass]="{ 'ng-invalid': f['username'].touched && f['username'].invalid }" pInputText />
-              <div *ngIf="f['username'].touched && f['username'].invalid">
-                <small *ngIf="f['username'].errors?.['required']" class="p-error">Saisissez Votre username </small>
+            <div class="row justify-content-center">
+              <div class="col-md-10"> <!-- Adjusted width of the column -->
+                <div class="mb-5">
+                  <label for="username1" class="block text-900 text-xl font-medium mb-2">Nom d'utilisateur :</label>
+                  <input id="username1" type="username" formControlName="username" placeholder="Nom d'utilisateur"
+                    class="w-full mb-2" style="padding: 1rem; width: 100%;" [ngClass]="{ 'ng-invalid': f['username'].touched && f['username'].invalid }"
+                    pInputText />
+                  <div *ngIf="f['username'].touched && f['username'].invalid">
+                    <small *ngIf="f['username'].errors?.['required']" class="p-error">Veuillez saisir votre nom d'utilisateur</small>
+                  </div>
+                </div>
+                <div class="mb-5">
+                  <label for="password1" class="block text-900 font-medium text-xl mb-2">Mot de passe :</label>
+                  <input id="password1" type="password" formControlName="password" placeholder="Mot de passe"
+                    class="w-full mb-2" style="padding: 1rem; width: 100%;" [ngClass]="{ 'ng-invalid': f['password'].touched && f['password'].invalid }"
+                    pInputText />
+                  <div *ngIf="f['password'].touched && f['password'].invalid">
+                    <small *ngIf="f['password'].errors?.['required']" class="p-error">Veuillez saisir votre mot de passe</small>
+                  </div>
+                </div>
+                <div class="flex align-items-center justify-content-between mb-5 gap-5">
+                  <div class="flex align-items-center">
+                    <p-checkbox id="rememberme1" formControlName="rememberMe" styleClass="mr-2"></p-checkbox>
+                    <label for="rememberme1">Se souvenir de moi</label>
+                  </div>
+                  <a class="font-medium no-underline ml-2 text-right cursor-pointer"
+                    style="color: var(--primary-color)">Mot de passe oublié?</a>
+                </div>
+                <div class="form-group text-center">
+                  <button pbutton="" pripple="" [disabled]="loginForm.invalid" label="Se connecter" icon="pi pi-user"
+                    class="p-element p-ripple w-full p-button p-component" ng-reflect-label="Se connecter"
+                    ng-reflect-icon="pi pi-user">
+                    <span class="p-button-icon p-button-icon-left pi pi-user" aria-hidden="true"></span>
+                    <span class="p-button-label">Se connecter</span>
+                    <span class="p-ink" aria-hidden="true" role="presentation"
+                      style="height: 474px; width: 474px; top: -220.9px; left: -159.6px;"></span>
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div class="mb-5">
-              <label for="password1" class="block text-900 font-medium text-xl mb-2">Mot de Passe :</label>
-              <input id="password1" type="password" formControlName="password" placeholder="Mot de passe" class="w-full md:w-30rem mb-5" style="padding:1rem" [ngClass]="{ 'ng-invalid': f['password'].touched && f['password'].invalid }" pInputText  />
-              <div *ngIf="f['password'].touched && f['password'].invalid">
-                <small *ngIf="f['password'].errors?.['required']" class="p-error">Saisissez Votre mot de passe</small>
-              </div>
-            </div>
-
-            <div class="flex align-items-center justify-content-between mb-5 gap-5">
-              <div class="flex align-items-center">
-                <p-checkbox id="rememberme1" formControlName="rememberMe" styleClass="mr-2"></p-checkbox>
-                <label for="rememberme1">Remember me</label>
-              </div>
-              <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)">Mot de passe oublié?</a>
-            </div>  
-            <div class="form-group">
-                <button pbutton="" pripple="" [disabled]="loginForm.invalid" label="Sign In" icon="pi pi-user" class="p-element p-ripple w-full p-button p-component" ng-reflect-label="Sign In" ng-reflect-icon="pi pi-user"><span class="p-button-icon p-button-icon-left pi pi-user" aria-hidden="true"></span><span class="p-button-label" >Se connecter</span><span class="p-ink" aria-hidden="true" role="presentation" style="height: 474px; width: 474px; top: -220.9px; left: -159.6px;"></span></button>
             </div>
           </form>
           <div class="text-center mb-5">
-            <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)"  [routerLink]="['/register']" >Créer un compte</a>
-        </div>
+            <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)"
+              [routerLink]="['/register']">Créer un compte</a>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="surface-card py-8 px-5 sm:px-8 mt-5" style="background-color: white; max-width: 100%; margin: 0 auto;">
+    </div>
+    <div class="layout-footer text-center mt-5">
+      <img src="assets/layout/images/LOGO.png" alt="Logo" height="20" class="mr-2"/>
+      <span class="font-medium ml-2 mr-2">RTG</span>
+      <span class="ml-2 mr-2">By</span>
+      <img src="assets/demo/images/Logo-vermeg.png" width="85" alt="Logo" class="mr-2">
+      <span class="ml-2 mr-2">© 2024</span>
+    </div>
+    <br>
   </div>
-  
+</div>

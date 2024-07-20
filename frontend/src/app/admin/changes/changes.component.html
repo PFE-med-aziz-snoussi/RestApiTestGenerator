@@ -1,0 +1,131 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-6 py-6">
+            <p-toast></p-toast>
+            <p-toolbar styleClass="mb-4">
+                <ng-template pTemplate="left">
+                    <button pButton pRipple label="Nouveau Changement" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNewChange()"></button>
+                    <button pButton pRipple label="Supprimer" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedChanges()" [disabled]="!selectedChanges || !selectedChanges.length"></button>
+                </ng-template>
+            </p-toolbar>
+
+            <p-table [value]="changes" [(selection)]="selectedChanges" dataKey="id" [paginator]="true" [rows]="10" [globalFilterFields]="['summary', 'changeType', 'path', 'method']" [showCurrentPageReport]="true" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} entrées">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
+                        <th pSortableColumn="summary">Résumé <p-sortIcon field="summary"></p-sortIcon></th>
+                        <th pSortableColumn="changeType">Type de Changement <p-sortIcon field="changeType"></p-sortIcon></th>
+                        <th pSortableColumn="path">Chemin <p-sortIcon field="path"></p-sortIcon></th>
+                        <th pSortableColumn="method">Méthode <p-sortIcon field="method"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-change>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="change"></p-tableCheckbox>
+                        </td>
+                        <td>{{change.id}}</td>
+                        <td>{{change.summary}}</td>
+                        <td>{{change.changeType}}</td>
+                        <td>{{change.path}}</td>
+                        <td><span [class]="'customer-badge status-' + (change.method || 'DEFAULT')">{{change.method}}</span></td>
+                        <td>
+                            <div class="flex">
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editChange(change)"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteChange(change)"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <p-dialog [(visible)]="changeDialog" [style]="{width: '450px'}" header="Détails du Changement" [modal]="true" class="p-fluid">
+            <ng-template pTemplate="content">
+                <form #changeForm="ngForm" (ngSubmit)="saveChange(changeForm)">
+                    <div class="field">
+                        <label for="version">Version :</label>
+                        <p-dropdown 
+                        [options]="versions" 
+                        [(ngModel)]="selectedVersion"
+                        name="version"
+                        optionLabel="id" 
+                        placeholder="Sélectionnez une Version"
+                        [filter]="true" 
+                        filterPlaceholder="Rechercher...">
+                        <ng-template pTemplate="item" let-version>
+                            {{ version.id }}
+                        </ng-template>
+                        <ng-template pTemplate="selectedItem" let-version>
+                            {{ version ? version.id : 'Sélectionnez une version' }}
+                        </ng-template>
+                    </p-dropdown>
+                    
+                    </div>
+                    
+                    <div class="field">
+                        <label for="method">Méthode :</label>
+                        <p-dropdown 
+                            [options]="httpMethods" 
+                            name="method"
+
+                            [(ngModel)]="change.method"
+                            placeholder="Sélectionnez une méthode">
+                            <ng-template let-method pTemplate="item">
+                                {{ method }}
+                            </ng-template>
+                            <ng-template let-method pTemplate="selectedItem">
+                                {{ method }}
+                            </ng-template>
+                        </p-dropdown>
+                    </div>
+                    
+                    <div class="field">
+                        <label for="summary">Résumé :</label>
+                        <input type="text" pInputText id="summary" placeholder="Résumé" name="summary" [(ngModel)]="change.summary" required />
+                    </div>
+                    <div class="field">
+                        <label for="changeType">Type de Changement :</label>
+                        <input type="text" pInputText id="changeType" placeholder="Type de Changement" name="changeType" [(ngModel)]="change.changeType" required />
+                    </div>
+                    <div class="field">
+                        <label for="path">Chemin :</label>
+                        <input type="text" pInputText id="path" placeholder="Chemin" name="path" [(ngModel)]="change.path" required />
+                    </div>
+                    
+                    <span class="p-buttonset">
+                        <button pButton pRipple label="Annuler" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                        <button pButton pRipple label="Sauvegarder" icon="pi pi-check" class="p-button-text" type="submit" [disabled]="!changeForm.valid"></button>
+                    </span>
+                </form>
+            </ng-template>
+        </p-dialog>
+        
+
+        <p-dialog [(visible)]="deleteChangeDialog" header="Confirmer" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Êtes-vous sûr de vouloir supprimer <b>{{change.summary}}</b> ?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="deleteChangeDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDeleteChange()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <p-dialog [(visible)]="deleteChangesDialog" header="Confirmer" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Êtes-vous sûr de vouloir supprimer les changements sélectionnés ?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="deleteChangesDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDeleteSelected()"></button>
+            </ng-template>
+        </p-dialog>
+    </div>
+</div>

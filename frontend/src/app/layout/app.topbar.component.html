@@ -14,19 +14,21 @@
 
     <div #topbarmenu class="layout-topbar-menu" [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
         <ng-container *ngIf="!userPhotoUrl">
-            <img src="assets/demo/images/640751.png" alt="640751" width="45" class="shadow-4" style="border-radius: 55%;" />
+            <img src="assets/demo/images/640751.png" alt="640751" width="35" class="shadow-4" style="border-radius: 55%;" />
         </ng-container>
         <ng-container *ngIf="userPhotoUrl">
-            <img [src]="userPhotoUrl" [alt]="userPhotoUrl" width="45" class="shadow-4" style="border-radius: 55%;" />
+            <img [src]="userPhotoUrl" [alt]="userPhotoUrl" width="35" class="shadow-4" style="border-radius: 55%;" />
         </ng-container>    
         <button class="p-link layout-topbar-button" [routerLink]="'/profile'">
             <i class="pi pi-user"></i>
             <span>Profile</span>
         </button>
+        <!-- 
         <button class="p-link layout-topbar-button" [routerLink]="'/settings'">
             <i class="pi pi-cog"></i>
             <span>Settings</span>
         </button>
+        -->
         <button class="p-link layout-topbar-button" (click)="logout()">
             <i class="p-menuitem-icon pi pi-fw pi-sign-out ng-star-inserted"></i>
             <span class="p-menuitem-text ng-star-inserted" data-pc-section="label">Quit</span>

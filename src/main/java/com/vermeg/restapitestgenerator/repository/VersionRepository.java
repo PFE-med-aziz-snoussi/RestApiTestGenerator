@@ -12,12 +12,19 @@ import java.util.List;
 @Repository
 public interface VersionRepository extends JpaRepository<Version, Long> {
     List<Version> findByProjectId(Long projectId);
+
     @Query("SELECT v.project FROM Version v WHERE v.id = :versionId")
     Project findProjectByVersionId(Long versionId);
 
+    @Query("SELECT COUNT(v) FROM Version v")
+    Long countAllVersions();
+
+    @Query("SELECT COUNT(v) FROM Version v WHERE v.createdAt >= :last14Days")
+    Long countVersionsLast14Days(LocalDateTime last14Days);
+
     @Query("SELECT COUNT(v) FROM Version v WHERE v.project.user.id = :userId")
-    Long countAllVersions(Long userId);
+    Long countUserVersions(Long userId);
 
     @Query("SELECT COUNT(v) FROM Version v WHERE v.project.user.id = :userId AND v.createdAt >= :last14Days")
-    Long countVersionsLast14Days(Long userId, LocalDateTime last14Days);
+    Long countUserVersionsLast14Days(Long userId, LocalDateTime last14Days);
 }

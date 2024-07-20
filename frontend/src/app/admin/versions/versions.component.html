@@ -5,19 +5,18 @@
       <p-toolbar styleClass="mb-4">
         <ng-template pTemplate="left">
           <div class="my-2">
-            <button pButton pRipple label="Back" icon="pi pi-arrow-circle-left" class="p-button-help mr-2" (click)="goBack()"></button>
-            <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
-            <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedVersions()"></button>
+            <button pButton pRipple label="Nouveau" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+            <button pButton pRipple label="Supprimer" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedVersions()"></button>
           </div>
         </ng-template>
       </p-toolbar>
-      <p-table #dt [value]="versions" [columns]="cols" responsiveLayout="scroll" [rows]="10" [paginator]="true" [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" selectionMode="multiple" [(selection)]="selectedVersions" [rowHover]="true" dataKey="id">
+      <p-table #dt [value]="versions" [columns]="cols" responsiveLayout="scroll" [rows]="10" [paginator]="true" [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} entrées" selectionMode="multiple" [(selection)]="selectedVersions" [rowHover]="true" dataKey="id">
         <ng-template pTemplate="caption">
           <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 class="m-0">Manage Versions</h5>
+            <h5 class="m-0">Gérer les Versions</h5>
             <span class="block mt-2 md:mt-0 p-input-icon-left">
               <i class="pi pi-search"></i>
-              <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." class="w-full sm:w-auto"/>
+              <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Rechercher..." class="w-full sm:w-auto"/>
             </span>
           </div>
         </ng-template>
@@ -27,10 +26,10 @@
               <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
             <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
-            <th pSortableColumn="fichierOpenAPI">OpenAPI File <p-sortIcon field="fichierOpenAPI"></p-sortIcon></th>
-            <th pSortableColumn="fichierPostmanCollection">Postman Collection File <p-sortIcon field="fichierPostmanCollection"></p-sortIcon></th>
-            <th pSortableColumn="changes">Changes <p-sortIcon field="changes"></p-sortIcon></th>
-            <th pSortableColumn="executions">Executions <p-sortIcon field="executions"></p-sortIcon></th>
+            <th pSortableColumn="fichierOpenAPI">Fichier OpenAPI <p-sortIcon field="fichierOpenAPI"></p-sortIcon></th>
+            <th pSortableColumn="fichierPostmanCollection">Fichier Postman Collection <p-sortIcon field="fichierPostmanCollection"></p-sortIcon></th>
+            <th pSortableColumn="changes">Modifications <p-sortIcon field="changes"></p-sortIcon></th>
+            <th pSortableColumn="executions">Exécutions <p-sortIcon field="executions"></p-sortIcon></th>
             <th></th>
           </tr>
         </ng-template>
@@ -53,50 +52,49 @@
       </p-table>
     </div>
 
-    <p-dialog [(visible)]="versionDialog" header="Version Details" [style]="{width:'800px', height:'300px'}" [modal]="true" class="p-fluid">
+    <p-dialog [(visible)]="versionDialog" header="Détails de la Version" [style]="{width:'800px', height:'300px'}" [modal]="true" class="p-fluid">
       <div class="p-fluid">
         <div class="field">
-          <label for="project">Project</label>
+          <label for="project">Projet</label>
           <p-dropdown 
           [options]="projects" 
           [(ngModel)]="selectedProject" 
           optionLabel="nomDuProjet"
-          placeholder="Select a Project"
-          style="width: 100%;">
+          placeholder="Sélectionnez un Projet">
           <ng-template let-project pTemplate="item">
             {{ project.nomDuProjet }} | {{ project.user.username }}
           </ng-template>
           <ng-template let-project pTemplate="selectedItem">
-            {{ project ? project.nomDuProjet + ' | ' + project.user.username : 'Select a Project' }}
+            {{ project ? project.nomDuProjet + ' | ' + project.user.username : 'Sélectionnez un Projet' }}
           </ng-template>
         </p-dropdown>
         </div>
       </div>
       <ng-template pTemplate="footer">
-        <button pButton pRipple icon="pi pi-times" label="Cancel" (click)="hideDialog()"></button>
-        <button pButton pRipple icon="pi pi-check" label="Save" (click)="saveVersion()"></button>
+        <button pButton pRipple icon="pi pi-times" label="Annuler" (click)="hideDialog()"></button>
+        <button pButton pRipple icon="pi pi-check" label="Enregistrer" (click)="saveVersion()"></button>
       </ng-template>
     </p-dialog>
 
-    <p-dialog [(visible)]="deleteVersionDialog" header="Confirm Deletion" [modal]="true" [style]="{width:'450px'}">
+    <p-dialog [(visible)]="deleteVersionDialog" header="Confirmer la Suppression" [modal]="true" [style]="{width:'450px'}">
       <div class="flex align-items-center justify-content-center">
         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-        <span *ngIf="version">Are you sure you want to delete this version?</span>
+        <span *ngIf="version">Êtes-vous sûr de vouloir supprimer cette version ?</span>
       </div>
       <ng-template pTemplate="footer">
-        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="hideDialog()"></button>
-        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="hideDialog()"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDelete()"></button>
       </ng-template>
     </p-dialog>
 
-    <p-dialog [(visible)]="deleteVersionsDialog" header="Confirm Deletion" [style]="{width:'450px'}">
+    <p-dialog [(visible)]="deleteVersionsDialog" header="Confirmer la Suppression" [style]="{width:'450px'}">
       <div class="flex align-items-center justify-content-center">
         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-        <span>Are you sure you want to delete the selected versions?</span>
+        <span>Êtes-vous sûr de vouloir supprimer les versions sélectionnées ?</span>
       </div>
       <ng-template pTemplate="footer">
-        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteVersionsDialog = false"></button>
-        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="deleteVersionsDialog = false"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDeleteSelected()"></button>
       </ng-template>
     </p-dialog>
   </div>

@@ -7,4 +7,4 @@ export class Change {
     method?: string;
     summary?: string;
     changeType?: string;
-  }
+}

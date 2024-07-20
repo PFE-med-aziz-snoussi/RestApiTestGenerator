@@ -1,16 +1,9 @@
-import { NgModule } from '@angular/core';
-import { HashLocationStrategy, LocationStrategy, PathLocationStrategy } from '@angular/common';
+import { NgModule,LOCALE_ID  } from '@angular/core';
+import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppLayoutModule } from './layout/app.layout.module';
-import { NotfoundComponent } from './demo/components/notfound/notfound.component';
-import { ProductService } from './demo/service/product.service';
-import { CountryService } from './demo/service/country.service';
-import { CustomerService } from './demo/service/customer.service';
-import { EventService } from './demo/service/event.service';
-import { IconService } from './demo/service/icon.service';
-import { NodeService } from './demo/service/node.service';
-import { PhotoService } from './demo/service/photo.service';
+import { NotfoundComponent } from './auth/notfound/notfound.component';
 import { AuthService } from './services/auth.service';
 import { CookieService } from 'ngx-cookie-service';
 
@@ -22,8 +15,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'ng-block-ui';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
 
-
+registerLocaleData(localeFr, 'fr');
 @NgModule({
     declarations: [AppComponent, 
         NotfoundComponent,
@@ -38,9 +33,8 @@ import { BlockUIModule } from 'ng-block-ui';
         ProgressSpinnerModule,
         BlockUIModule.forRoot(),],
     providers: [
+        { provide: LOCALE_ID, useValue: 'fr' },
         { provide: LocationStrategy, useClass: PathLocationStrategy },
-        CountryService, CustomerService, EventService, IconService, NodeService,
-        PhotoService, ProductService,
         AuthService,CookieService,
         httpInterceptorProviders
     ],

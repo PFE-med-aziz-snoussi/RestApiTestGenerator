@@ -5,7 +5,6 @@ import { Table } from 'primeng/table';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project.model';
 import { Router } from '@angular/router';
-import { User } from 'src/app/models/user.model';
 
 @Component({
     templateUrl: './projects.component.html',
@@ -33,7 +32,7 @@ export class ProjectsComponent implements OnInit {
 
     isUpdating: boolean = false;
 
-    currentUser: User | undefined;
+    currentUser: any;
 
 
     constructor(private projectService: ProjectService, private messageService: MessageService,private router: Router,private authService:AuthService) { }
@@ -41,22 +40,28 @@ export class ProjectsComponent implements OnInit {
     ngOnInit() {
         this.authService.getCurrentUser().subscribe(user => {
             this.currentUser = user;
+            
+            if (this.currentUser.authorities[0].authority === 'ROLE_USER') {
+                this.projectService.getMyProjects().subscribe(data => this.projects = data);
+            } else {
+                this.projectService.getAllProjects().subscribe(data => this.projects = data);
+            }
+            
+            this.cols = [
+                { field: 'id', header: 'ID' },
+                { field: 'nomDuProjet', header: 'nomDuProjet' },
+                { field: 'description', header: 'Description' },
+                { field: 'version', header: 'Version' },
+            ];
         });
-        this.projectService.getMyProjects().subscribe(data => this.projects = data);
-        this.cols = [
-            { field: 'id', header: 'ID' },
-            { field: 'nomDuProjet', header: 'nomDuProjet' },
-            { field: 'description', header: 'Description' },
-            { field: 'version', header: 'Version' },
-
-        ];
-
     }
+    
 
     openNew() {
         this.project = { nomDuProjet: '',
         description: ''};
         this.submitted = false;
+        this.isUpdating = false;
         this.projectDialog = true;
     }
 
@@ -79,12 +84,12 @@ export class ProjectsComponent implements OnInit {
         this.deleteProjectsDialog = false;
         this.projectService.deleteMultipleProjects(this.selectedProjects).subscribe(
             () => {
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Projects Deleted', life: 3000 });
+                this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Projets supprimés', life: 3000 });
                 this.projects = this.projects.filter(val => !this.selectedProjects.includes(val));
                 this.selectedProjects = [];
             },
             (error) => {
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error deleting projects: ' + error.message, life: 3000 });
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la suppression des projets : ' + error.message, life: 3000 });
             }
         );
     }
@@ -94,12 +99,12 @@ export class ProjectsComponent implements OnInit {
         this.deleteProjectDialog = false;
         this.projectService.deleteProject(this.project.id).subscribe(
             () => {
-                this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Project Deleted', life: 3000 });
+                this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Projet supprimé', life: 3000 });
                 this.projects = this.projects.filter(val => val.id !== this.project.id);
                 this.project = { nomDuProjet: '', description: '' };
             },
             (error) => {
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error deleting project: ' + error.message, life: 3000 });
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la suppression du projet ' + error.message, life: 3000 });
             }
         );
     }
@@ -118,22 +123,22 @@ export class ProjectsComponent implements OnInit {
                 this.projectService.updateProject(this.project.id, this.project).subscribe(
                     () => {
                         this.projects[this.findIndexById(this.project.id)] = this.project;
-                        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Project Updated', life: 3000 });
+                        this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Project Modifié', life: 3000 });
                         this.projectService.getMyProjects().subscribe(data => this.projects = data);
 
                     },
                     (error) => {
-                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error updating project: ' + error.message, life: 3000 });
+                        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la mise à jour du projet : ' + error.message, life: 3000 });
                     }
                 );
             } else {
                 this.projectService.createProject(this.project).subscribe(
                     (newProject) => {
                         this.projects.push(newProject);
-                        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Project Created', life: 3000 });
+                        this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Projet créé', life: 3000 });
                     },
                     (error) => {
-                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error creating project: ' + error.message, life: 3000 });
+                        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la creation du projet ' + error.message, life: 3000 });
                     }
                 );
             }
@@ -161,6 +166,6 @@ export class ProjectsComponent implements OnInit {
     }
 
     navigateToVersions(projectId: number) {
-        this.router.navigate([`/user/projects/${projectId}`]);
+        this.router.navigate([`/user/versions/${projectId}`]);
       }
 }

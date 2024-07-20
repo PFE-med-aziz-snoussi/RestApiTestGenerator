@@ -1,84 +1,107 @@
 <div class="grid">
-    <div class="col-12">
+  <div class="col-12">
       <div class="card px-6 py-6">
-        <p-toast></p-toast>
-        <p-toolbar styleClass="mb-4">
-          <ng-template pTemplate="left">
-            <div class="my-2">
-              <button pButton pRipple label="Back" icon="pi pi-arrow-circle-left" class="p-button-help mr-2" (click)="goBack()"></button>
-              <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="addNewVersion()"></button>
-              <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedVersions()"></button>
-            </div>
-          </ng-template>
-        </p-toolbar>
-        <p-table #dt [value]="versions" [columns]="cols" responsiveLayout="scroll" [rows]="10" [paginator]="true" [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" selectionMode="multiple" [(selection)]="selectedVersions" [rowHover]="true" dataKey="id">
-          <ng-template pTemplate="caption">
-            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-              <h5 class="m-0">Manage Versions</h5>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              <th style="width: 3rem">
-                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-              </th>
-              <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
-              <th pSortableColumn="fichierOpenAPI">OpenAPI File <p-sortIcon field="fichierOpenAPI"></p-sortIcon></th>
-              <th pSortableColumn="fichierPostmanCollection">Postman Collection File <p-sortIcon field="fichierPostmanCollection"></p-sortIcon></th>
-              <th pSortableColumn="changes">Changes <p-sortIcon field="changes"></p-sortIcon></th>
-              <th pSortableColumn="executions">Executions <p-sortIcon field="executions"></p-sortIcon></th>
-              <th></th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-version>
-            <tr>
-              <td>
-                <p-tableCheckbox [value]="version"></p-tableCheckbox>
-              </td>
-              <td>{{ version.id }}</td>
-              <td>
-                <ng-container *ngIf="version.fichierOpenAPI; else noImage">
-                  <img src="assets/demo/images/swagger.png" alt="OpenAPI File" width="40" class="shadow-4" style="border-radius: 50%; cursor: pointer;" (click)="downloadOpenAPIFile(version)" />
-                </ng-container>
-                <ng-template #noImage>No File</ng-template>
-              </td>
-              <td>              
-              <ng-container *ngIf="version.fichierPostmanCollection; else noPostmanImage">
-                <img src="assets/demo/images/postman.png" alt="Postman Collection File" width="40" class="shadow-4" style="border-radius: 50%; cursor: pointer;" (click)="downloadPostmanCollection(version)" />
-              </ng-container>
-              <ng-template #noPostmanImage>No File</ng-template>
-              </td>              
-              <td>{{ version.changes?.length }}</td>
-              <td>{{ version.executions?.length }}</td>
-              <td>
-                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="ModifyVersion(version)"></button>
-                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteVersion(version)"></button>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
+          <p-toast></p-toast>
+          <p-toolbar styleClass="mb-4">
+              <ng-template pTemplate="left">
+                  <div class="my-2">
+                      <button pButton pRipple label="Retour" icon="pi pi-arrow-circle-left" class="p-button-help mr-2" (click)="goBack()"></button>
+                      <button pButton pRipple label="Nouveau" icon="pi pi-plus" class="p-button-success mr-2" (click)="addNewVersion()"></button>
+                      <button pButton pRipple label="Supprimer" icon="pi pi-trash" class="p-button-danger mr-2" (click)="deleteSelectedVersions()"></button>
+                  </div>
+              </ng-template>
+          </p-toolbar>
+          <p-table #dt [value]="versions" [columns]="cols" responsiveLayout="scroll" [rows]="10" [paginator]="true" [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} entrées" selectionMode="multiple" [(selection)]="selectedVersions" [rowHover]="true" dataKey="id">
+              <ng-template pTemplate="caption">
+                  <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                      <h5 class="m-0">Gérer les Versions</h5>
+                  </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                  <tr>
+                      <th style="width: 3rem">
+                          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                      </th>
+                      <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
+                      <th pSortableColumn="fichierOpenAPI">Fichier OpenAPI <p-sortIcon field="fichierOpenAPI"></p-sortIcon></th>
+                      <th pSortableColumn="fichierPostmanCollection">Fichier Postman Collection <p-sortIcon field="fichierPostmanCollection"></p-sortIcon></th>
+                      <th pSortableColumn="changes">Changements <p-sortIcon field="changes"></p-sortIcon></th>
+                      <th pSortableColumn="executions">Exécutions <p-sortIcon field="executions"></p-sortIcon></th>
+                      <th></th>
+                  </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-version>
+                  <tr>
+                      <td>
+                          <p-tableCheckbox [value]="version"></p-tableCheckbox>
+                      </td>
+                      <td>{{ version.id }}</td>
+                      <td>
+                          <ng-container *ngIf="version.fichierOpenAPI; else noImage">
+                              <img src="assets/demo/images/swagger.png" alt="Fichier OpenAPI" width="40" class="shadow-4" style="border-radius: 50%; cursor: pointer;" (click)="downloadOpenAPIFile(version)" />
+                          </ng-container>
+                          <ng-template #noImage>Aucun Fichier</ng-template>
+                      </td>
+                      <td>              
+                          <ng-container *ngIf="version.fichierPostmanCollection; else noPostmanImage">
+                              <img src="assets/demo/images/postman.png" alt="Fichier Postman Collection" width="40" class="shadow-4" style="border-radius: 50%; cursor: pointer;" (click)="downloadPostmanCollection(version)" />
+                          </ng-container>
+                          <ng-template #noPostmanImage>Aucun Fichier</ng-template>
+                      </td>              
+                      <td>{{ version.changes?.length }}</td>
+                      <td>{{ version.executions?.length }}</td>
+                      <td>
+                          <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="ModifyVersion(version)"></button>
+                          <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteVersion(version)"></button>
+                      </td>
+                  </tr>
+              </ng-template>
+          </p-table>
       </div>
-      <p-dialog [(visible)]="deleteVersionDialog" header="Confirm Deletion" [modal]="true" [style]="{width:'450px'}">
-        <div class="flex align-items-center justify-content-center">
-          <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-          <span *ngIf="versionToDelete">Are you sure you want to delete this version?</span>
-        </div>
-        <ng-template pTemplate="footer">
-          <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="cancelDelete()"></button>
-          <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
-        </ng-template>
+      <p-dialog [(visible)]="deleteVersionDialog" header="Confirmer la Suppression" [modal]="true" [style]="{'width':'450px'}">
+          <div class="flex align-items-center justify-content-center">
+              <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+              <span *ngIf="versionToDelete">Êtes-vous sûr de vouloir supprimer cette version ?</span>
+          </div>
+          <ng-template pTemplate="footer">
+              <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="cancelDelete()"></button>
+              <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDelete()"></button>
+          </ng-template>
       </p-dialog>
-  
-      <p-dialog [(visible)]="deleteVersionsDialog" header="Confirm Deletion" [modal]="true" [style]="{width:'450px'}">
-        <div class="flex align-items-center justify-content-center">
-          <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-          <span>Are you sure you want to delete the selected versions?</span>
-        </div>
-        <ng-template pTemplate="footer">
-          <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="cancelDeleteSelected()"></button>
-          <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
-        </ng-template>
+
+      <p-dialog [(visible)]="deleteVersionsDialog" header="Confirmer la Suppression" [modal]="true" [style]="{'width':'450px'}">
+          <div class="flex align-items-center justify-content-center">
+              <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+              <span>Êtes-vous sûr de vouloir supprimer les versions sélectionnées ?</span>
+          </div>
+          <ng-template pTemplate="footer">
+              <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="cancelDeleteSelected()"></button>
+              <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDeleteSelected()"></button>
+          </ng-template>
       </p-dialog>
-    </div>
+
+      <p-dialog [(visible)]="versionDialog" header="Détails de la Version" [style]="{width:'800px', height:'300px'}" [modal]="true" class="p-fluid">
+          <div class="p-fluid">
+              <div class="field">
+                  <label for="project">Projet</label>
+                  <p-dropdown 
+                      [options]="projects" 
+                      [(ngModel)]="selectedProject" 
+                      optionLabel="nomDuProjet"
+                      placeholder="Sélectionnez un Projet">
+                      <ng-template let-project pTemplate="item">
+                          {{ project.nomDuProjet }} | {{ project.user.username }}
+                      </ng-template>
+                      <ng-template let-project pTemplate="selectedItem">
+                          {{ project ? project.nomDuProjet + ' | ' + project.user.username : 'Sélectionnez un Projet' }}
+                      </ng-template>
+                  </p-dropdown>
+              </div>
+          </div>
+          <ng-template pTemplate="footer">
+              <button pButton pRipple icon="pi pi-times" label="Annuler" (click)="hideDialog()"></button>
+              <button pButton pRipple icon="pi pi-check" label="Enregistrer" (click)="saveVersion()"></button>
+          </ng-template>
+      </p-dialog>
   </div>
-  
+</div>

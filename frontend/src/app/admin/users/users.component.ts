@@ -7,6 +7,7 @@ import { environment } from 'src/environments/environment.prod';
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
+  styleUrls: ['./users.component.scss'],
   providers: [MessageService],
 })
 export class UsersComponent implements OnInit {
@@ -23,8 +24,10 @@ export class UsersComponent implements OnInit {
   submitted: boolean = false;
   cols: any[] = [];
   userImageUploaded: boolean = false;
+  fileInputTouched: boolean = false;
   genderOptions = ['HOMME', 'FEMME'];
-
+  roleOptions = ['user', 'admin'];
+  showPassword: boolean = false;
 
   constructor(private userService: UserService, private messageService: MessageService) {
   }
@@ -42,7 +45,6 @@ export class UsersComponent implements OnInit {
       { field: 'registrationDate', header: 'Registration Date' },
       { field: 'lastLoginDate', header: 'Last Login Date' },
     ];
-
   }
 
   loadUsers() {
@@ -54,11 +56,14 @@ export class UsersComponent implements OnInit {
   openNew() {
     this.user = new User();
     this.submitted = false;
+    this.fileInputTouched = false;
     this.editing = false;
     this.userDialog = true;
+    this.showPassword = false;
   }
 
   onUpload(event: any) {
+    this.fileInputTouched = true;
     const file = event.files[0];
     if (file) {
       const formData = new FormData();
@@ -67,24 +72,27 @@ export class UsersComponent implements OnInit {
       this.userService.uploadFile(formData).subscribe(
         (response) => {
           this.userImageUploaded = true;
-          this.user.imageName = file.name; 
-          this.messageService.add({ severity: 'info', summary: 'Image upload successfully', detail: file.name });
+          this.user.imageName = file.name;
+          this.messageService.add({ severity: 'info', summary: 'Image téléchargée avec succès', detail: file.name });
         },
         (error) => {
           this.userImageUploaded = false;
-          console.error('File Upload Error:', error);
-          this.messageService.add({ severity: 'error', summary: 'image not uploaded', detail: file.name });
+          this.messageService.add({ severity: 'error', summary: 'Image non téléchargée', detail: file.name });
         }
       );
     }
-    event.target.value = null;
+    if (event.target) {
+      event.target.value = null;
+    }
   }
 
   editUser(user: User) {
     this.user = { ...user };
     this.submitted = false;
+    this.fileInputTouched = false;
     this.editing = true;
     this.userDialog = true;
+    this.showPassword = false;
   }
 
   deleteUser(user: User) {
@@ -101,7 +109,7 @@ export class UsersComponent implements OnInit {
     this.userService.deleteUsers(ids).subscribe(() => {
       this.deleteUsersDialog = false;
       this.loadUsers();
-      this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Users Deleted', life: 3000 });
+      this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Utilisateurs supprimés', life: 3000 });
       this.selectedUsers = [];
     });
   }
@@ -110,7 +118,7 @@ export class UsersComponent implements OnInit {
     this.userService.deleteUser(this.user.id).subscribe(() => {
       this.deleteUserDialog = false;
       this.loadUsers();
-      this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'User Deleted', life: 3000 });
+      this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Utilisateur supprimé', life: 3000 });
       this.user = new User();
     });
   }
@@ -118,33 +126,35 @@ export class UsersComponent implements OnInit {
   hideDialog() {
     this.userDialog = false;
     this.submitted = false;
+    this.fileInputTouched = false;
+    this.showPassword = false;
   }
 
-  saveUser() {
+  saveUser(userForm:any) {
     this.submitted = true;
 
     if (!this.isFormValid()) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to save user', life: 3000 });
+      this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de l\'enregistrement de l\'utilisateur', life: 3000 });
       return;
     }
 
     if (this.editing) {
       this.userService.updateUser(this.user.id, this.user).subscribe(() => {
         this.loadUsers();
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'User Updated', life: 3000 });
+        this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Utilisateur mis à jour', life: 3000 });
       });
     } else {
       this.userService.createUser(this.user).subscribe(() => {
         this.loadUsers();
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'User Created', life: 3000 });
+        this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Utilisateur créé', life: 3000 });
       });
     }
     this.userDialog = false;
     this.user = new User();
+    this.fileInputTouched = false;
     this.editing = false;
     this.userImageUploaded = false;
-   
-
+    this.showPassword = false;
   }
 
   isFormValid(): boolean {
@@ -153,5 +163,9 @@ export class UsersComponent implements OnInit {
 
   onGlobalFilter(table: any, event: Event) {
     table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+  }
+
+  toggleShowPassword() {
+    this.showPassword = !this.showPassword;
   }
 }

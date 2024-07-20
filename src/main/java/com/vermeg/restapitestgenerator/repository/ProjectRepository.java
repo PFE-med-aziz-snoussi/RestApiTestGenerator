@@ -24,4 +24,17 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("SELECT COUNT(p) FROM Project p WHERE p.user.id = :userId AND EXISTS (SELECT v FROM Version v WHERE v.project.id = p.id AND EXISTS (SELECT e FROM Execution e WHERE e.version.id = v.id AND e.fichierResultCollection IS NOT NULL AND e.createdAt >= :last14Days))")
     Long countProjectsWithResultFilesLast14Days(Long userId, LocalDateTime last14Days);
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE EXISTS (SELECT v FROM Version v WHERE v.project.id = p.id AND v.fichierPostmanCollection IS NOT NULL)")
+    Long countAllProjectsWithPostmanFiles();
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE EXISTS (SELECT v FROM Version v WHERE v.project.id = p.id AND v.fichierPostmanCollection IS NOT NULL AND v.createdAt >= :last14Days)")
+    Long countAllProjectsWithPostmanFilesLast14Days(LocalDateTime last14Days);
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE EXISTS (SELECT v FROM Version v WHERE v.project.id = p.id AND EXISTS (SELECT e FROM Execution e WHERE e.version.id = v.id AND e.fichierResultCollection IS NOT NULL))")
+    Long countAllProjectsWithResultFiles();
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE EXISTS (SELECT v FROM Version v WHERE v.project.id = p.id AND EXISTS (SELECT e FROM Execution e WHERE e.version.id = v.id AND e.fichierResultCollection IS NOT NULL AND e.createdAt >= :last14Days))")
+    Long countAllProjectsWithResultFilesLast14Days(LocalDateTime last14Days);
+
 }

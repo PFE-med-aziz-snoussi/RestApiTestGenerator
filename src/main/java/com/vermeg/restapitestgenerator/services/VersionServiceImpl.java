@@ -1,11 +1,14 @@
 package com.vermeg.restapitestgenerator.services;
 
 import com.vermeg.restapitestgenerator.models.Project;
+import com.vermeg.restapitestgenerator.models.User;
 import com.vermeg.restapitestgenerator.models.Version;
+import com.vermeg.restapitestgenerator.repository.ProjectRepository;
 import com.vermeg.restapitestgenerator.repository.VersionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +17,8 @@ public class VersionServiceImpl implements IServiceVersion {
 
     @Autowired
     private VersionRepository versionRepository;
+    @Autowired
+    private ProjectRepository projectRepo;
 
     @Override
     public Version createVersion(Version version) {
@@ -54,6 +59,15 @@ public class VersionServiceImpl implements IServiceVersion {
     @Override
     public Project findProjectByVersionId(Long versionId) {
         return versionRepository.findProjectByVersionId(versionId);
+    }
+
+    public List<Version> getVersionsByUser(User user) {
+        List<Project> projects = projectRepo.findByUser(user);
+        List<Version> versions = new ArrayList<>();
+        for (Project project : projects) {
+            versions.addAll(project.getVersions());
+        }
+        return versions;
     }
 }
 

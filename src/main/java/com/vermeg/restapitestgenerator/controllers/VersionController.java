@@ -1,17 +1,21 @@
 package com.vermeg.restapitestgenerator.controllers;
 
-import com.vermeg.restapitestgenerator.models.Execution;
-import com.vermeg.restapitestgenerator.models.Project;
-import com.vermeg.restapitestgenerator.models.Version;
+import com.vermeg.restapitestgenerator.models.*;
+import com.vermeg.restapitestgenerator.repository.UserRepository;
 import com.vermeg.restapitestgenerator.services.IProjectService;
 import com.vermeg.restapitestgenerator.services.IServiceVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +31,8 @@ public class VersionController {
     private IServiceVersion versionService;
     @Autowired
     private IProjectService projectService;
+    @Autowired
+    private UserRepository userRepo;
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -45,12 +51,36 @@ public class VersionController {
         return ResponseEntity.ok(versionOptional.get());
     }
 
-    @GetMapping("/")
+    @GetMapping("/current/all")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<Version>> getAllVersions() {
-        List<Version> versions = versionService.getAllVersions();
-        return ResponseEntity.ok(versions);
+    public ResponseEntity<List<Version>> getCurrentUserVersions() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> userOpt = userRepo.findByUsername(userDetails.getUsername());
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+
+            // Check if the user has ADMIN role
+            boolean isAdmin = user.getRoles().stream()
+                    .anyMatch(role -> role.getName().equals(ERole.ROLE_ADMIN) );
+
+            List<Version> versions;
+            if (isAdmin) {
+                // Admin retrieves all versions
+                versions = versionService.getAllVersions(); // Ensure this method exists
+            } else {
+                // Regular user retrieves their versions
+                versions = versionService.getVersionsByUser(user);
+            }
+
+            return ResponseEntity.ok(versions);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
+
+
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -103,21 +133,38 @@ public class VersionController {
         }
     }
 
-
-
     @GetMapping("/project/{projectId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> getVersionsByProjectId(@PathVariable Long projectId) {
-        Optional<Project> proj = projectService.getProjectById(projectId);
+    public ResponseEntity<?> getVersionsByProjectId(@PathVariable(required = false) Long projectId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepo.findByUsername(userDetails.getUsername());
 
-        if (proj.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project not found");
+        List<Version> versions = new ArrayList<>();
+
+        if (projectId == null || projectId == 0) {
+            List<Project> projects = projectService.getProjectsByUser(optionalUser.get());
+            for (Project project : projects) {
+                versions.addAll(project.getVersions());
+            }
+        } else {
+            Optional<Project> proj = projectService.getProjectById(projectId);
+
+            if (proj.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project not found");
+            }
+
+            Project project = proj.get();
+
+            if (!project.getUser().getUsername().equals(userDetails.getUsername())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied: You are not the owner of this project");
+            }
+            versions = project.getVersions();
         }
-
-        Project project = proj.get();
-        List<Version> versions = project.getVersions();
         return ResponseEntity.ok(versions);
     }
+
+
 
     @PostMapping("/deleteMultipleVersions")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")

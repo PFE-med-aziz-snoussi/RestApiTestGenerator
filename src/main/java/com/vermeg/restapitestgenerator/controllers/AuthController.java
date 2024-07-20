@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -99,7 +100,7 @@ System.out.println(jwtCookie.toString());
                 signUpRequest.getRegistrationDate(),
                 signUpRequest.getLastLoginDate());
 
-        Set<String> strRoles = signUpRequest.getRole();
+        String strRoles = signUpRequest.getRoles();
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
@@ -107,8 +108,7 @@ System.out.println(jwtCookie.toString());
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         } else {
-            strRoles.forEach(role -> {
-                switch (role) {
+                switch (strRoles) {
                     case "admin":
                         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Admin Role is not found."));
@@ -122,7 +122,6 @@ System.out.println(jwtCookie.toString());
                     default:
                         throw new RuntimeException("Error: Role not found.");
                 }
-            });
         }
 
         user.setRoles(roles);
@@ -141,7 +140,12 @@ System.out.println(jwtCookie.toString());
     @GetMapping("/currentuser")
     public ResponseEntity<?> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        return ResponseEntity.ok().body(userDetails);
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            return ResponseEntity.ok().body(userDetails);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated");
+        }
     }
 }

@@ -1,0 +1,206 @@
+<div class="grid">
+    <div class="col-12 md:col-12 d-flex justify-content-center">
+        <div class="card text-center w-100">
+            <p-toast></p-toast>
+            <ng-container *ngIf="!userPhotoUrl">
+                <div class="d-flex justify-content-center">
+                    <img src="assets/demo/images/640751.png" width="140" class="shadow-4" style="border-radius: 55%;" />
+                </div>
+            </ng-container>
+            <ng-container *ngIf="userPhotoUrl">
+                <div class="d-flex justify-content-center">
+                    <img [src]="userPhotoUrl" [alt]="user.username" width="140" class="shadow-4" style="border-radius: 55%;" />
+                </div>
+            </ng-container>    
+            <br>
+            <div class="mt-3 lg:mt-0">
+                <div class="flex align-items-center d-flex justify-content-center">
+                    <p-fileUpload mode="basic" name="image" accept="image/*" maxFileSize="1000000" customUpload="true" [auto]="true" (uploadHandler)="onUpload($event)" class="mr-2"></p-fileUpload>
+                    <button 
+                        pButton 
+                        icon="pi pi-times" 
+                        class="p-button-rounded p-button-danger" 
+                        aria-label="Supprimer la photo"
+                        (click)="deletePhoto()">
+                    </button>
+                </div>                  
+            </div>
+            
+            <div class="card-body">
+                <h5 class="font-bold">{{ user.username }} 
+                    <span *ngIf="user.gender === 'HOMME'; else female">
+                        <span class="customer-badge status-new">♂</span>
+                    </span>
+                    <ng-template #female>
+                        <span class="customer-badge status-unqualified">♀</span>
+                    </ng-template>
+                </h5>
+                <p class="text-muted">{{ user.email }}</p>
+                
+                <div class="mt-3 lg:mt-0">
+                    <span *ngIf="user.roles && user.roles.length > 0 && user.roles[0].name === 'ROLE_USER'; else admin">
+                        <span class="customer-badge status-qualified">Utilisateur</span>
+                    </span>
+                    <ng-template #admin>
+                        <span class="customer-badge status-renewal">Administrateur</span>
+                    </ng-template>
+                </div>
+                <br>
+                <div class="mt-3 lg:mt-0">
+                    <div class="mt-3 lg:mt-0">
+                        <button 
+                          pButton 
+                          class="p-button-rounded p-button-danger" 
+                          (click)="confirmDelete()"
+                          aria-label="Supprimer le compte">Supprimer le compte
+                        </button>
+                    </div>                  
+                </div>
+                
+                <div class="d-flex justify-content-center text-sm mt-3">
+                    <div class="mr-5">
+                        <span class="font-medium text-500 large-text">Projets</span>
+                        <div class="text-700 mt-2 large-text">{{ projects.length }}</div>
+                    </div>
+                    <div class="mr-5">
+                        <span class="font-medium text-500 large-text">Versions</span>
+                        <div class="text-700 mt-2 large-text">{{ getTotalVersions() }}</div>
+                    </div>
+                    <div class="mr-5">
+                        <span class="font-medium text-500 large-text">Exécutions</span>
+                        <div class="text-700 mt-2 large-text">{{ getTotalExecutions() }}</div>
+                    </div>
+                    <div>
+                        <span class="font-medium text-500 large-text">Modifications</span>
+                        <div class="text-700 mt-2 large-text">{{ getTotalChanges() }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="Confirmer la suppression" [(visible)]="displayDeleteDialog" modal="modal" [closable]="false" [dismissableMask]="true">
+    <div class="p-fluid p-3">
+        <form #deleteForm="ngForm" (ngSubmit)="deleteAccount()">
+            <div class="p-field text-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Êtes-vous sûr de vouloir supprimer votre compte ?</span>
+            </div>
+            <br>
+            <div class="p-field">
+                <label for="password">Mot de passe</label>
+                <input 
+                    type="password" 
+                    pInputText 
+                    [(ngModel)]="password" 
+                    name="password" 
+                    id="password" 
+                    required 
+                    #passwordInput="ngModel"
+                    [ngClass]="{'ng-invalid ng-dirty': !password || password.length < 3}"
+                >
+                <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="p-error">
+                    Le mot de passe est requis.
+                </div>
+            </div>
+            <br>
+            <div class="p-dialog-footer text-center">
+                <button 
+                    type="submit" 
+                    pButton 
+                    icon="pi pi-check" 
+                    label="Oui" 
+                    class="p-button-danger mr-2" 
+                    [disabled]="deleteForm.invalid">
+                </button>
+                <button 
+                    type="button" 
+                    pButton 
+                    icon="pi pi-times" 
+                    (click)="displayDeleteDialog=false" 
+                    label="Non" 
+                    class="p-button-secondary">
+                </button>
+            </div>
+        </form>
+    </div>
+</p-dialog>
+
+<div class="grid">
+    <div class="col-12 md:col-12 d-flex justify-content-center p-fluid">
+        <div class="card text-center w-100">
+            <h5>Changer le mot de passe</h5>
+            <div class="card-body">
+                <div class="p-fluid p-3">
+                    <form #changePasswordForm="ngForm" (ngSubmit)="changePassword(changePasswordForm)">
+                        <div class="p-field form-row">
+                            <label for="oldPassword" class="input-label">Ancien mot de passe</label>
+                            <input 
+                                type="password" 
+                                pInputText 
+                                [(ngModel)]="oldPassword" 
+                                name="oldPassword" 
+                                id="oldPassword" 
+                                required 
+                                #oldPasswordInput="ngModel"
+                                class="input-field"
+                                [ngClass]="{'ng-invalid ng-dirty': !oldPassword || oldPassword.length < 3}"
+                            >
+                            <div *ngIf="oldPasswordInput.invalid && (oldPasswordInput.dirty || oldPasswordInput.touched)" class="p-error">
+                                L'ancien mot de passe est requis.
+                            </div>
+                        </div>
+                        
+                        <div class="p-field form-row">
+                            <label for="newPassword" class="input-label">Nouveau mot de passe</label>
+                            <input 
+                                type="password" 
+                                pInputText 
+                                [(ngModel)]="newPassword" 
+                                name="newPassword" 
+                                id="newPassword" 
+                                required 
+                                #newPasswordInput="ngModel"
+                                class="input-field"
+                                [ngClass]="{'ng-invalid ng-dirty': !newPassword || newPassword.length < 3}"
+                            >
+                            <div *ngIf="newPasswordInput.invalid && (newPasswordInput.dirty || newPasswordInput.touched)" class="p-error">
+                                Le nouveau mot de passe est requis.
+                            </div>
+                        </div>
+                        
+                        <div class="p-field form-row">
+                            <label for="confirmPassword" class="input-label">Confirmer le nouveau mot de passe</label>
+                            <input 
+                                type="password" 
+                                pInputText 
+                                [(ngModel)]="confirmPassword" 
+                                name="confirmPassword" 
+                                id="confirmPassword" 
+                                required 
+                                #confirmPasswordInput="ngModel"
+                                class="input-field"
+                                [ngClass]="{'ng-invalid ng-dirty': confirmPassword !== newPassword || confirmPassword.length < 3}"
+                            >
+                            <div *ngIf="confirmPasswordInput.invalid && (confirmPasswordInput.dirty || confirmPasswordInput.touched)" class="p-error">
+                                Les mots de passe doivent correspondre.
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button 
+                                type="submit" 
+                                pButton 
+                                icon="pi pi-check" 
+                                label="Changer" 
+                                class="p-button-warning mr-2 small-button" 
+                                [disabled]="changePasswordForm.invalid">
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

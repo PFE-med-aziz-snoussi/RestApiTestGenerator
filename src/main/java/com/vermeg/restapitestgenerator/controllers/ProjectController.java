@@ -67,7 +67,6 @@ public class ProjectController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getAllProjects() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserName = authentication.getName();
@@ -78,18 +77,11 @@ public class ProjectController {
         }
 
         User currentUser = optionalUser.get();
-        List<Project> projects;
-
-        if (authentication.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_USER"))) {
-            projects = projectService.getProjectsByUser(currentUser);
-        } else if (authentication.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"))) {
-            projects = projectService.getAllProjects();
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
-        }
+        List<Project> projects = projectService.getProjectsByUser(currentUser);
 
         return ResponseEntity.ok(projects);
     }
+
 
 
     @GetMapping("/allByAdmin")
@@ -509,9 +501,9 @@ public class ProjectController {
         Project project = projectOpt.get();
 
         // Check if the current user is the owner of the project
-        if (!project.getUser().getUsername().equals(currentUserName)) {
+        /*if (!project.getUser().getUsername().equals(currentUserName)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized access");
-        }
+        }*/
 
         // Fetch version
         Optional<Version> versionOpt = project.getVersions().stream()
@@ -634,6 +626,22 @@ public class ProjectController {
         project.getVersions().add(createdVersion);
         projectService.updateProject(project.getId(), project);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdVersion);
+    }
+
+
+    @GetMapping("/byVersion/{versionId}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getProjectByVersion(@PathVariable Long versionId) {
+        Optional<Version> versionOpt = versionService.getVersionById(versionId);
+        if (versionOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Version not found");
+        }
+        Version version = versionOpt.get();
+        Project project = version.getProject();
+        if (project == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project not found for this version");
+        }
+        return ResponseEntity.ok(project);
     }
 
 

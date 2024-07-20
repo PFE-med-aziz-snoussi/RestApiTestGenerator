@@ -1,0 +1,60 @@
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chart-overlay {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--text-color);
+  pointer-events: none; /* Prevent overlay from blocking mouse events */
+  transition: opacity 0.3s ease; /* Smooth transition */
+  opacity: 1; /* Set default opacity to 0 */
+}
+
+.doughnut-chart .chart-overlay {
+  top: 61%; 
+}
+
+.pie-chart .chart-overlay {
+  top: 58%;
+}
+
+.chart-container:hover .chart-overlay {
+  opacity: 0.25; /* Show overlay on hover */
+}
+
+/* Media queries remain unchanged */
+@media (max-width: 1500px) {
+  .chart-overlay {
+      font-size: 2.1em;
+  }
+}
+@media (max-width: 1200px) {
+  .chart-overlay {
+      font-size: 1.8em;
+  }
+}
+@media (max-width: 992px) {
+  .chart-overlay {
+      font-size: 1.5em;
+  }
+}
+@media (max-width: 768px) {
+  .chart-overlay {
+      font-size: 1.2em;
+  }
+}
+@media (max-width: 576px) {
+  .chart-overlay {
+      font-size: 1em;
+  }
+}

@@ -1,6 +1,7 @@
 package com.vermeg.restapitestgenerator.services;
 import com.vermeg.restapitestgenerator.models.Change;
 import com.vermeg.restapitestgenerator.models.Version;
+import com.vermeg.restapitestgenerator.repository.ChangeRepository;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Operation;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -20,11 +22,52 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.io.File;
+import java.util.Optional;
 
 @Service
 public class ChangeServiceImpl implements IChangeService {
 
+    @Autowired
+    private ChangeRepository changeRepository;
+
     private static final String OPENAPI_FILE_PATH = "public/openapifiles/";
+
+    @Override
+    public Change createChange(Change change) {
+        return changeRepository.save(change);
+    }
+
+    @Override
+    public Optional<Change> getChangeById(Long id) {
+        return changeRepository.findById(id);
+    }
+
+    @Override
+    public List<Change> getAllChanges() {
+        return changeRepository.findAll();
+    }
+
+    @Override
+    public Change updateChange(Long id, Change changeDetails) {
+        return changeRepository.findById(id).map(change -> {
+            change.setPath(changeDetails.getPath());
+            change.setMethod(changeDetails.getMethod());
+            change.setSummary(changeDetails.getSummary());
+            change.setChangeType(changeDetails.getChangeType());
+            change.setVersion(changeDetails.getVersion());
+            return changeRepository.save(change);
+        }).orElse(null);
+    }
+
+    @Override
+    public void deleteChange(Long id) {
+        changeRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteMultipleChanges(List<Long> ids) {
+        changeRepository.deleteAllById(ids);
+    }
 
     @Override
     public OpenAPI parseOpenAPI(String fileName) {

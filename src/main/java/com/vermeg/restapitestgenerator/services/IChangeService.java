@@ -13,8 +13,20 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface IChangeService {
+    Change createChange(Change change);
+
+    Optional<Change> getChangeById(Long id);
+
+    List<Change> getAllChanges();
+
+    Change updateChange(Long id, Change changeDetails);
+
+    void deleteChange(Long id);
+
+    void deleteMultipleChanges(List<Long> ids);
     OpenAPI parseOpenAPI(String filePath);
     List<Change> compareOpenAPIsForBreakingChanges(OpenAPI openAPI1, OpenAPI openAPI2, Version version);
     List<Change> compareOperations(String path, PathItem.HttpMethod method, Operation operation1, Operation operation2, Version version);

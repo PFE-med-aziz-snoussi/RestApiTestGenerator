@@ -12,19 +12,21 @@ import { DialogModule } from 'primeng/dialog';
 import { ProjectService } from 'src/app/services/project.service';
 import { DataViewModule } from 'primeng/dataview';
 import { PickListModule } from 'primeng/picklist';
-
+import { Project } from 'src/app/models/project.model';
+import { DropdownModule } from 'primeng/dropdown';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-versions',
   standalone: true,
-  imports: [CommonModule, TableModule, ToastModule, ToolbarModule, ButtonModule, DialogModule,DataViewModule,
-		PickListModule,],
+  imports: [CommonModule, TableModule, ToastModule, ToolbarModule, ButtonModule, DialogModule, DataViewModule, PickListModule,DropdownModule,FormsModule],
   templateUrl: './versions.component.html',
   providers: [MessageService],
-  styleUrl: './versions.component.scss'
+  styleUrls: ['./versions.component.scss']
 })
 export class VersionsComponent implements OnInit {
   versions: Version[] = [];
+  projects: Project[] = [];
   cols: any[] = [];
   rowsPerPageOptions = [5, 10, 20];
   deleteVersionDialog: boolean = false;
@@ -32,6 +34,8 @@ export class VersionsComponent implements OnInit {
   versionToDelete: Version;
   selectedVersions: Version[] = [];
   projectId: number;
+  versionDialog: boolean = false;  
+  selectedProject: Project;       
 
   constructor(
     private versionService: VersionService,
@@ -43,7 +47,18 @@ export class VersionsComponent implements OnInit {
 
   ngOnInit() {
     this.projectId = +this.route.snapshot.paramMap.get('projectId')!;
+    
+    this.projectService.getMyProjects().subscribe(
+      data => {
+        this.projects = data;
+      },
+      error => {
+        console.error('Error fetching projects:', error);
+      }
+    );
+    
     this.fetchVersionsByProjectId(this.projectId);
+
     this.cols = [
       { field: 'id', header: 'ID' },
       { field: 'fichierOpenAPI', header: 'OpenAPI File' },
@@ -58,6 +73,8 @@ export class VersionsComponent implements OnInit {
     this.versionService.getVersionsByProjectId(projectId).subscribe(
         data => {
             this.versions = data;
+            console.log(this.versions);
+
         },
         error => {
             this.router.navigate(['/error']);
@@ -113,14 +130,39 @@ export class VersionsComponent implements OnInit {
   }
 
   ModifyVersion(version: Version) {
-    this.router.navigate(['/user/projects/version/', this.projectId, version.id]);
+    const project = this.projects.find(p => p.versions.some(v => v.id === version.id));
+    if (project) {
+      this.router.navigate(['/user/version/', project.id, version.id]);
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Project not found for the specified version.', life: 3000 });
+    }
   }
 
   addNewVersion() {
-    this.projectService.addVersion(this.projectId).subscribe((addedVersion: Version) => {
-      this.versions.push(addedVersion);
-      this.messageService.add({ severity: 'success', summary: 'Version added', detail: 'Version added successfully' });
-    });
+    if (!this.projectId) {
+      this.versionDialog = true;  // Show dialog for project selection
+    } else {
+      this.projectService.addVersion(this.projectId).subscribe((addedVersion: Version) => {
+        this.versions.push(addedVersion);
+        this.messageService.add({ severity: 'success', summary: 'Version added', detail: 'Version added successfully' });
+      });
+    }
+  }
+
+  hideDialog() {
+    this.versionDialog = false;
+  }
+
+  saveVersion() {
+    if (this.selectedProject) {
+      this.projectService.addVersion(this.selectedProject.id).subscribe((addedVersion: Version) => {
+        this.versions.push(addedVersion);
+        this.messageService.add({ severity: 'success', summary: 'Version added', detail: 'Version added successfully' });
+        this.versionDialog = false;  
+      });
+    } else {
+      this.messageService.add({ severity: 'warn', summary: 'No Project Selected', detail: 'Please select a project before saving.', life: 3000 });
+    }
   }
 
   downloadPostmanCollection(version: any): void {
@@ -158,5 +200,4 @@ export class VersionsComponent implements OnInit {
       });
     }
   }
-  
 }

@@ -8,6 +8,8 @@ import { PasswordModule } from 'primeng/password';
 import { InputTextModule } from 'primeng/inputtext';
 import { RegisterRoutingModule } from './register-routing.module';
 import { RegisterComponent } from './register.component';
+import { FileUploadModule } from 'primeng/fileupload';
+import { SharedModule } from '../shared/shared.module';
 
 
 @NgModule({
@@ -22,6 +24,8 @@ import { RegisterComponent } from './register.component';
     FormsModule,
     PasswordModule,
     DropdownModule,
+    FileUploadModule,
+    SharedModule
   ],
   declarations: [RegisterComponent]
 })

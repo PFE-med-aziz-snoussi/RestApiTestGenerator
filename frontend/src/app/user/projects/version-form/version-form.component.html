@@ -4,13 +4,13 @@
         <p-toast></p-toast>
         <p-toolbar>
           <div class="p-toolbar-group-left flex flex-wrap">
-            <button pButton pRipple label="Back" icon="pi pi-arrow-circle-left" class="p-button-help mr-2" (click)="goBack()"></button>
+            <button pButton pRipple label="Retour" icon="pi pi-arrow-circle-left" class="p-button-help mr-2" (click)="goBack()"></button>
               <p-confirmDialog header="Confirmation" key="showConfirmationDialog" icon="pi pi-exclamation-triangle" message="Are you sure you want to proceed?"
               [style]="{width: '350px'}" acceptButtonStyleClass="p-button-text" rejectButtonStyleClass="p-button-text"></p-confirmDialog>
-              <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger" (click)="showConfirmationDialog()" ></button>
+              <button pButton pRipple label="Supprimer" icon="pi pi-trash" class="p-button-danger" (click)="showConfirmationDialog()" ></button>
           </div>
       </p-toolbar>
-        <h2>Version Setup</h2>
+        <h2>Configuration de la Version</h2>
         <div class="card card-w-title flex flex-wrap">
             <div class="col-12 md:col-12 h-full">
                 <p-steps [model]="routeItems" styleClass="mt-5" [readonly]="false" [(activeIndex)]="currentStep" (activeIndexChange)="onStepChange($event)" ></p-steps>
@@ -20,7 +20,7 @@
         <div class="col-12">
             <div class="card">            
               <div *ngIf="currentStep === 0">
-                <h3>Step 1: Upload OpenAPI File</h3>
+                <h3>Étape 1 : Télécharger le fichier OpenAPI</h3>
                 <p-fileUpload
                   name="openApiFile"
                   [customUpload]="true"
@@ -31,21 +31,21 @@
                 >
                   <ng-template pTemplate="content">
                     <div *ngIf="openApiFile">
-                      {{ openApiFile.name }} - {{ openApiFile.size }} bytes
+                      {{ openApiFile.name }} - {{ openApiFile.size }} octets
                     </div>
                   </ng-template>
                 </p-fileUpload>
 
                 <div class="col-12">
                   <div class="card">
-                    <h5>Changes Table</h5>
+                    <h5>Table des Changements</h5>
                     <p-table #dt2 [value]="changes" dataKey="id" [rows]="10" [loading]="loading" [rowHover]="true" styleClass="p-datatable-gridlines" [paginator]="true" [globalFilterFields]="['path', 'method', 'summary', 'changeType']" responsiveLayout="scroll">
                       <ng-template pTemplate="caption">
                         <div class="flex justify-content-between flex-column sm:flex-row">
-                          <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt2)"></button>
+                          <button pButton label="Effacer" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt2)"></button>
                           <span class="p-input-icon-left mb-2">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" #filter (input)="onGlobalFilter(dt2, $event)" placeholder="Search Keyword" class="w-full"/>
+                            <input pInputText type="text" #filter (input)="onGlobalFilter(dt2, $event)" placeholder="Mot-clé de recherche" class="w-full"/>
                           </span>
                         </div>
                       </ng-template>
@@ -109,113 +109,105 @@
                 </div>
 
                 <div style="display: flex; justify-content: center; gap: 10px;">
-                <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined" disabled>Back</button>
-                <button pButton pRipple type="button" (click)="nextStep()" [disabled]="!version.fichierPostmanCollection" icon="pi pi-chevron-right" class="p-button-rounded p-button-outlined">Next</button>
+                <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined" disabled>Précédent</button>
+                <button pButton pRipple type="button" (click)="nextStep()" [disabled]="!version.fichierPostmanCollection" icon="pi pi-chevron-right" class="p-button-rounded p-button-outlined">Suivant</button>
               </div>
 
               
             </div>
             
             <div *ngIf="currentStep === 1">
-              <h3>Step 2: Generate a Postman collection with tests included</h3>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <!-- Postman Collection Card -->
-                    <div class="card">
-                      <div class="card-body">
-                        <h5 class="card-title text-uppercase text-white text-center card-title-bg-custom">Postman Collection</h5>
-                        <br>
-                        <br>
-                        <i class="pi pi-file" style="font-size: 1.5rem"> Collection :</i>
-                        <label>API Collection</label>
-                        <br>
-                        <br>
-
-                        <div class="button-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-                          <button pButton pRipple type="button" (click)="downloadPostmanCollection()" label="Download" [disabled]="!version.fichierPostmanCollection"></button>
-                        </div>
-                        <br>                        
-                        <br>
-
-                        <div class="test-labels">
-                          <p>- Contract tests</p>
-                          <p>- Security tests</p>
-                          <p>- Performance tests</p>
-                          <p>- Breaking changes</p>
-                        </div>
+              <h3>Étape 2 : Générer une collection Postman avec les tests inclus</h3>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title text-uppercase text-white text-center card-title-bg-custom">Collection Postman</h5>
+                      <br>
+                      <br>
+                      <i class="pi pi-file" style="font-size: 1.5rem"> Collection :</i>
+                      <label>Collection API</label>
+                      <br>
+                      <br>
+            
+                      <div class="button-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                        <button pButton pRipple type="button" (click)="downloadPostmanCollection()" label="Télécharger" [disabled]="!version.fichierPostmanCollection"></button>
+                      </div>
+                      <br>                        
+                      <br>
+            
+                      <div class="test-labels">
+                        <p>- Tests de contrat</p>
+                        <p>- Tests de sécurité</p>
+                        <p>- Tests de performance</p>
+                        <p>- Changements destructeurs</p>
                       </div>
                     </div>
                   </div>
-                  <br>
-                  <br>
-
-                  <div class="col-md-6">
-                    <div class="card" >
-                      <div class="card-body">
-                        <h5 class="card-title text-uppercase text-white text-center card-title-bg-custom">Authentication Setup</h5>
-                        <div class="card" style="margin-top: 20px;">
-                          <h5>Authentication</h5>
-                          <p-selectButton [options]="authOptions" [(ngModel)]="selectedAuthType" [disabled]="version.fichierPostmanCollection"></p-selectButton>
-                    
-                          <div *ngIf="selectedAuthType === 'basic'">
-                            <div class="p-fluid p-formgrid p-grid">
-                              <div class="p-field p-col">
-                                <label for="username">Username</label>
-                                <input id="username" type="text" pInputText [(ngModel)]="username" [disabled]="version.fichierPostmanCollection" />
-                              </div>
-                              <div class="p-field p-col">
-                                <label for="password">Password</label>
-                                <input id="password" type="text" pInputText [(ngModel)]="password" [disabled]="version.fichierPostmanCollection" />
-                              </div>
+                </div>
+                <br>
+                <br>
+            
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title text-uppercase text-white text-center card-title-bg-custom">Configuration de l'Authentification</h5>
+                      <div class="card" style="margin-top: 20px;">
+                        <h5>Authentification</h5>
+                        <p-selectButton [options]="authOptions" [(ngModel)]="selectedAuthType" [disabled]="version.fichierPostmanCollection"></p-selectButton>
+                  
+                        <div *ngIf="selectedAuthType === 'basic'">
+                          <div class="p-fluid p-formgrid p-grid">
+                            <div class="p-field p-col">
+                              <label for="username">Nom d'utilisateur</label>
+                              <input id="username" type="text" pInputText [(ngModel)]="username" [disabled]="version.fichierPostmanCollection" />
                             </div>
-                    
-                           
-                          </div>
-                    
-                          <div *ngIf="selectedAuthType === 'oauth2'">
-                            <div class="p-fluid p-formgrid p-grid">
-                              <div class="p-field p-col">
-                                <label for="clientId">Client ID</label>
-                                <input id="clientId" type="text" pInputText [(ngModel)]="clientId" [disabled]="version.fichierPostmanCollection" />
-                              </div>
-                              <div class="p-field p-col">
-                                <label for="clientSecret">Client Secret</label>
-                                <input id="clientSecret" type="password" pInputText [(ngModel)]="clientSecret" [disabled]="version.fichierPostmanCollection" />
-                              </div>
+                            <div class="p-field p-col">
+                              <label for="password">Mot de passe</label>
+                              <input id="password" type="text" pInputText [(ngModel)]="password" [disabled]="version.fichierPostmanCollection" />
                             </div>
                           </div>
-                          <div *ngIf="selectedAuthType === 'basic' || selectedAuthType === 'oauth2'">
-                            <div class="p-fluid p-formgrid p-grid">
-                              <div class="p-field p-col">
-                                <label for="authFormUrl">Authentication Form URL</label>
-                                <input id="authFormUrl" type="text" pInputText [(ngModel)]="authFormUrl" [disabled]="version.fichierPostmanCollection" />
-                              </div>
+                        </div>
+                  
+                        <div *ngIf="selectedAuthType === 'oauth2'">
+                          <div class="p-fluid p-formgrid p-grid">
+                            <div class="p-field p-col">
+                              <label for="clientId">ID Client</label>
+                              <input id="clientId" type="text" pInputText [(ngModel)]="clientId" [disabled]="version.fichierPostmanCollection" />
+                            </div>
+                            <div class="p-field p-col">
+                              <label for="clientSecret">Secret Client</label>
+                              <input id="clientSecret" type="password" pInputText [(ngModel)]="clientSecret" [disabled]="version.fichierPostmanCollection" />
+                            </div>
+                          </div>
+                        </div>
+                        <div *ngIf="selectedAuthType === 'basic' || selectedAuthType === 'oauth2'">
+                          <div class="p-fluid p-formgrid p-grid">
+                            <div class="p-field p-col">
+                              <label for="authFormUrl">URL du Formulaire d'Authentification</label>
+                              <input id="authFormUrl" type="text" pInputText [(ngModel)]="authFormUrl" [disabled]="version.fichierPostmanCollection" />
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>                  
+                    </div>
                   </div>                  
-                  
-                </div>
-                
-                
-              
-                <div class="button-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px;">
-                  <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined">Back</button>
-                  <button (click)="generatePostmanCollection()" pButton pRipple type="button" label="Generate" [disabled]="version.fichierPostmanCollection" class="p-button-rounded"></button>
-                  <button pButton pRipple type="button" (click)="nextStep()" icon="pi pi-chevron-right" class="p-button-rounded p-button-outlined" [disabled]="!version.fichierPostmanCollection">Next</button>
-                </div>
-
+                </div>                  
+              </div>
+            
+              <div class="button-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px;">
+                <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined">Précédent</button>
+                <button (click)="generatePostmanCollection()" pButton pRipple type="button" label="Générer" [disabled]="version.fichierPostmanCollection" class="p-button-rounded"></button>
+                <button pButton pRipple type="button" (click)="nextStep()" icon="pi pi-chevron-right" class="p-button-rounded p-button-outlined" [disabled]="!version.fichierPostmanCollection">Suivant</button>
+              </div>
             </div>
             
             
             
+            
                   <div *ngIf="currentStep === 2">
-                    <h3>Step 3: Running PostmanCollection execution with Newman </h3>
+                    <h3>Étape 3 : Exécuter la Collection avec Newman</h3>
                     <div class="col-12">
-                          <h5>ProgressBar</h5>
                           <div class="grid">
                               <div class="col">
                                   <p-progressBar [value]="ProgressBarvalue" [showValue]="true"></p-progressBar>
@@ -224,10 +216,9 @@
                           
                     </div>
                     <div style="display: flex; justify-content: center; gap: 10px;">
-                    <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined">Back</button>
-                    <button (click)="runNewman()" pButton pRipple type="button" label="Run" [disabled]="version.fichierResultCollection" class="p-button-rounded"></button>
-                    <!-- <button pButton pRipple type="button" (click)="nextStep()" icon="pi pi-chevron-right" class="p-button-rounded p-button-outlined"  [disabled]="!version.fichierResultCollection" >Next</button> -->
-                    <button pButton pRipple type="button" (click)="nextStep()" icon="pi pi-chevron-right" class="p-button-rounded p-button-outlined"   >Next</button>
+                    <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined">Précédent</button>
+                    <button (click)="runNewman()" pButton pRipple type="button" label="Exécuter" [disabled]="version.fichierResultCollection" class="p-button-rounded"></button>
+                    <button pButton pRipple type="button" (click)="SuivantStep()" icon="pi pi-chevron-right" class="p-button-rounded p-button-outlined"   >Suivant</button>
 
                   </div>
                 
@@ -235,10 +226,10 @@
                   </div>
 
                   <div *ngIf="currentStep === 3">
-                    <app-report [projectId]="this.projectId" [versionId]="version.id" ></app-report>
+                    <app-executions [projectId]="this.projectId" [versionId]="version.id" ></app-executions>
                     <div style="display: flex; justify-content: center; gap: 10px;">
 
-                    <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined">Back</button>
+                    <button pButton pRipple type="button" (click)="prevStep()" icon="pi pi-chevron-left" class="p-button-rounded p-button-outlined">Précédent</button>
                     </div>
 
                   </div>

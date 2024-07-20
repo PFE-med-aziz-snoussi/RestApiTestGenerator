@@ -5,24 +5,23 @@
             <p-toolbar styleClass="mb-4">
                 <ng-template pTemplate="left">
                     <div class="my-2">
-                        <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
-                        <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedProjects()" [disabled]="!selectedProjects || !selectedProjects.length"></button>
+                        <button pButton pRipple label="Nouveau" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+                        <button pButton pRipple label="Supprimer" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedProjects()" [disabled]="!selectedProjects || !selectedProjects.length"></button>
                     </div>
                 </ng-template>
 
                 <ng-template pTemplate="right">
-                    <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block"></p-fileUpload>
-                    <button pButton pRipple label="Export" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
+                    <button pButton pRipple label="Exporter" icon="pi pi-upload" class="p-button-help" (click)="dt.exportCSV()"></button>
                 </ng-template>
             </p-toolbar>
 
-            <p-table #dt [value]="projects" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['nomDuProjet','description','version']" [paginator]="true" [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedProjects" selectionMode="multiple" [rowHover]="true" dataKey="id">
+            <p-table #dt [value]="projects" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['nomDuProjet','description','version']" [paginator]="true" [rowsPerPageOptions]="rowsPerPageOptions" [showCurrentPageReport]="true" currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} entrées" [(selection)]="selectedProjects" selectionMode="multiple" [rowHover]="true" dataKey="id">
                 <ng-template pTemplate="caption">
                     <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                        <h5 class="m-0">Manage Projects</h5>
+                        <h5 class="m-0">Gérer les Projets</h5>
                         <span class="block mt-2 md:mt-0 p-input-icon-left">
                             <i class="pi pi-search"></i>
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." class="w-full sm:w-auto"/>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Rechercher..." class="w-full sm:w-auto"/>
                         </span>
                     </div>
                 </ng-template>
@@ -32,10 +31,10 @@
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
                         <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
-                        <th pSortableColumn="nomDuProjet">Project name <p-sortIcon field="nomDuProjet"></p-sortIcon></th>
+                        <th pSortableColumn="nomDuProjet">Nom du projet <p-sortIcon field="nomDuProjet"></p-sortIcon></th>
                         <th pSortableColumn="description">Description <p-sortIcon field="description"></p-sortIcon></th>
                         <th *ngIf="currentUser?.authorities[0].authority === 'ROLE_USER'" pSortableColumn="version">Version</th>
-                        <th *ngIf="currentUser?.authorities[0].authority === 'ROLE_ADMIN'" pSortableColumn="version">Owner</th>
+                        <th *ngIf="currentUser?.authorities[0].authority === 'ROLE_ADMIN'" pSortableColumn="version">Propriétaire </th>
 
                         <th></th> 
 
@@ -67,10 +66,10 @@
             </p-table>
         </div>
 
-        <p-dialog [(visible)]="projectDialog" [style]="{width: '450px'}" header="Project Details" [modal]="true" class="p-fluid">
+        <p-dialog [(visible)]="projectDialog" [style]="{width: '450px'}" header="Détails du projet" [modal]="true" class="p-fluid">
             <ng-template pTemplate="content">
                 <div class="field">
-                    <label for="projectname">Project name</label>
+                    <label for="projectname">Nom du projet</label>
                     <input 
                         type="text" 
                         pInputText 
@@ -82,7 +81,7 @@
                         [ngClass]="{'ng-invalid ng-dirty': submitted && (!project.nomDuProjet || project.nomDuProjet.length < 3)}"
                     />
                     <small class="ng-dirty ng-invalid" *ngIf="submitted && (!project.nomDuProjet || project.nomDuProjet.length < 3)">
-                        Project name is required and must be at least 3 characters long.
+                        Le nom du projet est requis et doit comporter au moins 3 caractères.
                     </small>
                 </div>
                 
@@ -99,43 +98,44 @@
                         [ngClass]="{'ng-invalid ng-dirty': submitted && (!project.description || project.description.length < 3)}"
                     ></textarea>
                     <small class="ng-dirty ng-invalid" *ngIf="submitted && (!project.description || project.description.length < 3)">
-                        Description is required and must be at least 3 characters long.
+                        La description est requise et doit comporter au moins 3 caractères.
                     </small>
                 </div>                
                 <ng-container *ngIf="isUpdating">
                     <div class="field">
-                        <label for="version">Versions Count</label>
+                        <label for="version">Nombre de versions</label>
                         <p-inputNumber id="version" [(ngModel)]="project.versions.length" disabled></p-inputNumber>
                     </div>
                 </ng-container>
             </ng-template>
-
+        
             <ng-template pTemplate="footer">
-                <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-                <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveProject()"></button>
+                <button pButton pRipple label="Annuler" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton pRipple label="Enregistrer" icon="pi pi-check" class="p-button-text" (click)="saveProject()"></button>
             </ng-template>
         </p-dialog>
-
-        <p-dialog [(visible)]="deleteProjectDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        
+        <p-dialog [(visible)]="deleteProjectDialog" header="Confirmation" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span *ngIf="project">Are you sure you want to delete <b>{{project.nomDuProjet}}</b>?</span>
+                <span *ngIf="project">Êtes-vous sûr de vouloir supprimer <b>{{project.nomDuProjet}}</b> ?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProjectDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="deleteProjectDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDelete()"></button>
             </ng-template>
         </p-dialog>
-
-        <p-dialog [(visible)]="deleteProjectsDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+        
+        <p-dialog [(visible)]="deleteProjectsDialog" header="Confirmation" [modal]="true" [style]="{width:'450px'}">
             <div class="flex align-items-center justify-content-center">
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
-                <span>Are you sure you want to delete selected projects?</span>
+                <span>Êtes-vous sûr de vouloir supprimer les projets sélectionnés ?</span>
             </div>
             <ng-template pTemplate="footer">
-                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProjectsDialog = false"></button>
-                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Non" (click)="deleteProjectsDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Oui" (click)="confirmDeleteSelected()"></button>
             </ng-template>
         </p-dialog>
+        
     </div>
 </div>

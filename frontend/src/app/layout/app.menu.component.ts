@@ -24,15 +24,15 @@ export class AppMenuComponent implements OnInit {
   initializeMenu() {
     this.model = [
       {
-        label: 'Home',
+        label: 'Accueil',
         items: [
           { label: 'Dashboard', icon: 'pi pi-chart-bar', routerLink: ['/dashboard'] }
 
         ]
       },
       {
-        label: 'Components',
-        items: [
+        label: this.currentUser?.authorities[0].authority === 'ROLE_ADMIN' ? 'Administrateur' : 'Utilisateur',
+        items: [ /*
           { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', routerLink: ['/uikit/formlayout'] },
           { label: 'Input', icon: 'pi pi-fw pi-check-square', routerLink: ['/uikit/input'] },
           { label: 'Float Label', icon: 'pi pi-fw pi-bookmark', routerLink: ['/uikit/floatlabel'] },
@@ -49,8 +49,8 @@ export class AppMenuComponent implements OnInit {
           { label: 'File', icon: 'pi pi-fw pi-file', routerLink: ['/uikit/file'] },
           { label: 'Chart', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/uikit/charts'] },
           { label: 'Misc', icon: 'pi pi-fw pi-circle', routerLink: ['/uikit/misc'] }
-        ]
-      },
+        */]
+      },/*
       {
         label: 'Prime Blocks',
         items: [
@@ -169,19 +169,23 @@ export class AppMenuComponent implements OnInit {
             label: 'View Source', icon: 'pi pi-fw pi-search', url: ['https://github.com/primefaces/sakai-ng'], target: '_blank'
           }
         ]
-      }
+      } */
     ];
 
     if (this.currentUser?.authorities[0].authority === 'ROLE_ADMIN') {
       this.model[1].items.unshift(
-        { label: 'Admin Users', icon: 'pi pi-fw pi-id-card', routerLink: ['/admin/users'] },
-        { label: 'Admin Projects', icon: 'pi pi-fw pi-list', routerLink: ['/admin/projects'] },
-        { label: 'Admin Versions', icon: 'pi pi-fw pi-box', routerLink: ['/admin/versions'] }
+        { label: 'Utilisateurs', icon: 'pi pi-fw pi-id-card', routerLink: ['/admin/users'] },
+        { label: 'Projets', icon: 'pi pi-fw pi-list', routerLink: ['/admin/projects'] },
+        { label: 'Versions', icon: 'pi pi-fw pi-box', routerLink: ['/admin/versions'] },
+        { label: 'Executions', icon: 'pi pi-fw pi-check-square', routerLink: ['/admin/executions'] },
+        { label: 'Changements', icon: 'pi pi-fw pi-list', routerLink: ['/admin/changes'] },
+
       );
     }
     if (this.currentUser?.authorities[0].authority === 'ROLE_USER') {
         this.model[1].items.unshift(
-          { label: 'User projects', icon: 'pi pi-fw pi-id-card', routerLink: ['/user/projects'] }
+          { label: 'Projets', icon: 'pi pi-fw pi-id-card', routerLink: ['/user/projects'] },
+          { label: 'Versions', icon: 'pi pi-fw pi-box', routerLink: ['/user/versions'] },
         );
       }
   }

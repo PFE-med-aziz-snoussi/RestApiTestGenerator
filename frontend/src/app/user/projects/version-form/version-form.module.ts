@@ -20,7 +20,7 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
-import { ReportComponent } from '../report/report.component';
+import { ExecutionsComponent } from '../executions/executions.component';
 import { TableModule } from 'primeng/table';
 import { SelectButtonModule } from 'primeng/selectbutton';
 
@@ -47,7 +47,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
     DialogModule,
     ConfirmDialogModule,
     ConfirmPopupModule,
-    ReportComponent ,
+    ExecutionsComponent ,
     TableModule,
     SelectButtonModule
   ],

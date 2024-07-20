@@ -18,6 +18,7 @@ import { UsersRoutingModule } from './users-routing.module';
 import { UsersComponent } from './users.component';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 
 @NgModule({
@@ -40,6 +41,7 @@ import { MessageModule } from 'primeng/message';
     DialogModule,
     PasswordModule,
     MessageModule,
+    ConfirmDialogModule  
     
   ],
   declarations: [UsersComponent],

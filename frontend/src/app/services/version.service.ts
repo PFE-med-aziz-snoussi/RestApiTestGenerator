@@ -22,7 +22,7 @@ export class VersionService {
   }
 
   getAllVersions(): Observable<Version[]> {
-    return this.http.get<Version[]>(`${this.apiUrl}/`,{ withCredentials: true });
+    return this.http.get<Version[]>(`${this.apiUrl}/current/all`,{ withCredentials: true });
   }
 
   updateVersion(id: number, versionDetails: Version): Observable<Version> {
@@ -44,4 +44,9 @@ export class VersionService {
   getProjectByVersionId(versionId: number): Observable<Project> {
     return this.http.get<Project>(`${this.apiUrl}/project/version/${versionId}`, { withCredentials: true });
   }
+
+  getCurrentUserVersions(): Observable<Version[]> {
+    return this.http.get<Version[]>(`${this.apiUrl}/current/all`, { withCredentials: true });
+  }
+  
 }

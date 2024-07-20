@@ -4,7 +4,7 @@ import { VersionService } from 'src/app/services/version.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -17,6 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { RippleModule } from 'primeng/ripple';
 import { Project } from 'src/app/models/project.model';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-versions',
@@ -55,8 +56,7 @@ export class VersionsComponent implements OnInit {
     private versionService: VersionService,
     private projectService: ProjectService,
     private messageService: MessageService,
-    private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
   ) { }
 
   ngOnInit() {
@@ -64,10 +64,10 @@ export class VersionsComponent implements OnInit {
     this.fetchProjects();
     this.cols = [
       { field: 'id', header: 'ID' },
-      { field: 'fichierOpenAPI', header: 'OpenAPI File' },
-      { field: 'fichierPostmanCollection', header: 'Postman Collection File' },
-      { field: 'changes', header: 'Changes' },
-      { field: 'executions', header: 'Executions' }
+      { field: 'fichierOpenAPI', header: 'Fichier OpenAPI' },
+      { field: 'fichierPostmanCollection', header: 'Fichier Postman Collection' },
+      { field: 'changes', header: 'Modifications' },
+      { field: 'executions', header: 'Exécutions' }
     ];
   }
 
@@ -88,14 +88,11 @@ export class VersionsComponent implements OnInit {
         this.projects = data;
       },
       error => {
-        console.error('Error fetching projects:', error);
+        console.error('Erreur lors de la récupération des projets:', error);
       }
     );
   }
 
-  goBack() {
-    this.router.navigate(['/user/projects']);
-  }
 
   deleteVersion(version: Version) {
     this.versionToDelete = version;
@@ -106,13 +103,13 @@ export class VersionsComponent implements OnInit {
     this.deleteVersionDialog = false;
     this.versionService.deleteVersion(this.versionToDelete.id).subscribe(() => {
       this.versions = this.versions.filter(version => version.id !== this.versionToDelete.id);
-      this.messageService.add({ severity: 'warn', summary: 'Version deleted', detail: 'Version deleted successfully' });
+      this.messageService.add({ severity: 'warn', summary: 'Version supprimée', detail: 'Version supprimée avec succès' });
     });
   }
 
   deleteSelectedVersions() {
     if (this.selectedVersions.length === 0) {
-      this.messageService.add({ severity: 'warn', summary: 'No Versions Selected', detail: 'Please select versions to delete.', life: 3000 });
+      this.messageService.add({ severity: 'warn', summary: 'Aucune version sélectionnée', detail: 'Veuillez sélectionner des versions à supprimer.', life: 3000 });
       return;
     }
     this.deleteVersionsDialog = true;
@@ -122,12 +119,12 @@ export class VersionsComponent implements OnInit {
     this.deleteVersionsDialog = false;
     this.versionService.deleteMultipleVersions(this.selectedVersions).subscribe(
       () => {
-        this.messageService.add({ severity: 'success', summary: 'Successful', detail: 'Versions Deleted', life: 3000 });
+        this.messageService.add({ severity: 'success', summary: 'Réussi', detail: 'Versions supprimées', life: 3000 });
         this.versions = this.versions.filter(val => !this.selectedVersions.includes(val));
         this.selectedVersions = [];
       },
       error => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error deleting versions: ' + error.message, life: 3000 });
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la suppression des versions : ' + error.message, life: 3000 });
       }
     );
   }
@@ -140,14 +137,15 @@ export class VersionsComponent implements OnInit {
     this.deleteVersionsDialog = false;
   }
 
-  ModifyVersion(version: Version) {
+  editVersion(version: Version) {
     const project = this.projects.find(p => p.versions.some(v => v.id === version.id));
     if (project) {
-      this.router.navigate(['/user/projects', project.id, version.id]);
+      this.router.navigate(['/admin/versions', project.id, version.id]);
     } else {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Project not found for this version' });
+      this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Projet non trouvé pour cette version' });
     }
   }
+
   openNew() {
     this.version = new Version();
     this.selectedProject = null;
@@ -158,13 +156,13 @@ export class VersionsComponent implements OnInit {
     if (this.selectedProject) {
       this.projectService.addVersionAndAffectProject(this.selectedProject.id, this.version).subscribe((addedVersion: Version) => {
         this.versions.push(addedVersion);
-        this.messageService.add({ severity: 'success', summary: 'Version added', detail: 'Version added successfully' });
+        this.messageService.add({ severity: 'success', summary: 'Version ajoutée', detail: 'Version ajoutée avec succès' });
         this.versionDialog = false;
       }, error => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error adding version: ' + error.message });
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de l\'ajout de la version : ' + error.message });
       });
     } else {
-      this.messageService.add({ severity: 'warn', summary: 'No Project Selected', detail: 'Please select a project.', life: 3000 });
+      this.messageService.add({ severity: 'warn', summary: 'Aucun projet sélectionné', detail: 'Veuillez sélectionner un projet.', life: 3000 });
     }
   }
 
@@ -186,8 +184,8 @@ export class VersionsComponent implements OnInit {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(anchor);
       }, error => {
-        console.error('Error downloading file:', error);
-      });*/
+        console.error('Erreur lors du téléchargement du fichier:', error);
+      }); */
     } 
   }
 
@@ -204,7 +202,7 @@ export class VersionsComponent implements OnInit {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(anchor);
       }, error => {
-        console.error('Error downloading file:', error);
+        console.error('Erreur lors du téléchargement du fichier:', error);
       }); */
     }
   }

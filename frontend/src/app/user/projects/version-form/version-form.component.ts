@@ -60,10 +60,10 @@ export class VersionFormComponent implements OnInit {
 
   ) {
     this.routeItems = [
-      { label: 'Step 1: Upload OpenAPI File', command: () => this.onStepChange(0), disabled: true },
-      { label: 'Step 2: Generate Postman Collection', command: () => this.onStepChange(1), disabled: true },
-      { label: 'Step 3: Run Newman Execution', command: () => this.onStepChange(2), disabled: true },
-      { label: 'End.', command: () => this.onStepChange(3), disabled: true }
+      { label: 'Étape 1 : Charger le fichier OpenAPI', command: () => this.onStepChange(0), disabled: true },
+      { label: 'Étape 2 : Générer la collection Postman', command: () => this.onStepChange(1), disabled: true },
+      { label: 'Étape 3 : Exécuter Newman', command: () => this.onStepChange(2), disabled: true },
+      { label: 'Fin.', command: () => this.onStepChange(3), disabled: true }
     ];
   }
 
@@ -104,7 +104,6 @@ export class VersionFormComponent implements OnInit {
         this.loading = false;
         this.currentStep = this.calculateCurrentStep(version);
         this.updateRouteItems();
-        console.log(this.version)
       },
       error => {
         this.loading = false;
@@ -117,16 +116,16 @@ export class VersionFormComponent implements OnInit {
     if (version.executions && version.executions.length > 0) {
       const lastExecution = version.executions[version.executions.length - 1];
       if (lastExecution.fichierResultCollection) {
-        return 3; // Étape 4: Fichier de résultat de l'exécution disponible
+        return 3;
       }
     }
     if (version.fichierPostmanCollection) {
-      return 2; // Étape 3: Fichier Postman Collection disponible
+      return 2;
     }
     if (version.fichierOpenAPI) {
-      return 1; // Étape 2: Fichier OpenAPI disponible
+      return 1;
     }
-    return 0; // Étape 1: Aucun fichier disponible
+    return 0; 
   }
   
 
@@ -142,20 +141,20 @@ export class VersionFormComponent implements OnInit {
     const file = event.files[0];
     if (file && file.name.endsWith('.yaml')) {
       this.openApiFile = file;
-      this.messageService.add({ severity: 'info', summary: 'OpenAPI file uploaded successfully', detail: file.name });
+      this.messageService.add({ severity: 'info', summary: 'Fichier OpenAPI téléchargé avec succès', detail: file.name });
       this.routeItems[2].disabled = false;
 
       this.projectService.uploadOpenAPIFile(file, this.projectId, this.versionId).subscribe(
         response => {
-          this.messageService.add({ severity: 'success', summary: 'File Uploaded', detail: 'OpenAPI file uploaded successfully' });
+          this.messageService.add({ severity: 'success', summary: 'Fichier Téléchargé', detail: 'Fichier OpenAPI téléchargé avec succès' });
           this.fetchVersion(this.version.id);
         },
         error => {
-          this.messageService.add({ severity: 'error', summary: 'Upload Error', detail: 'There was an error uploading the file' });
+          this.messageService.add({ severity: 'error', summary: 'Erreur de Téléchargement', detail: 'Il y a eu une erreur lors du téléchargement du fichier' });
         }
       );
     } else {
-      this.messageService.add({ severity: 'error', summary: 'Invalid File', detail: 'Please upload a valid .yaml file' });
+      this.messageService.add({ severity: 'error', summary: 'Fichier Invalide', detail: 'Veuillez télécharger un fichier .yaml valide' });
     }
   }
 
@@ -173,11 +172,11 @@ export class VersionFormComponent implements OnInit {
         response => {
           this.postmanCollectionGenerated = true;
           this.routeItems[3].disabled = false;
-          this.messageService.add({ severity: 'info', summary: 'Postman collection', detail: 'Postman collection generated successfully' });
+          this.messageService.add({ severity: 'info', summary: 'Collection Postman', detail: 'Collection Postman générée avec succès' });
           this.fetchVersion(this.version.id);
         },
         error => {
-          this.messageService.add({ severity: 'error', summary: 'Error generating Postman collection:', detail: error });
+          this.messageService.add({ severity: 'error', summary: 'Erreur lors de la génération de la collection Postman', detail: error });
         }
       );
     } 
@@ -189,13 +188,13 @@ export class VersionFormComponent implements OnInit {
       this.startProgressBar();
       this.projectService.runNewman(this.projectId,this.version.id).subscribe(
         response => {
-          this.messageService.add({ severity: 'info', summary: 'Newman run successful', detail: 'The Newman run was completed successfully.' });
+          this.messageService.add({ severity: 'info', summary: 'Exécution de Newman réussie', detail: 'L\'exécution de Newman a été complétée avec succès.' });
           this.completeProgressBar();
           this.onStepChange(3);
           this.fetchVersion(this.version.id);
         },
         error => {
-          this.messageService.add({ severity: 'error', summary: 'Error running Newman', detail: 'There was an error while running Newman.' });
+          this.messageService.add({ severity: 'error', summary: 'Erreur lors de l\'exécution de Newman', detail: 'Il y a eu une erreur lors de l\'exécution de Newman.' });
           this.completeProgressBar();
         }
       );  
@@ -240,7 +239,7 @@ export class VersionFormComponent implements OnInit {
 
   downloadPostmanCollection(): void {
     if (this.version.id) {
-      this.projectService.downloadPostmanCollection(this.projectId,this.version.id).subscribe((response: Blob) => {
+      this.projectService.downloadPostmanCollection(this.projectId, this.version.id).subscribe((response: Blob) => {
         const url = window.URL.createObjectURL(response);
 
         const anchor = document.createElement('a');
@@ -255,21 +254,24 @@ export class VersionFormComponent implements OnInit {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(anchor);
       }, error => {
-        console.error('Error downloading file:', error);
-      }); 
-      }
+        console.error('Erreur lors du téléchargement du fichier:', error);
+      });
     }
+  }
 
   showConfirmationDialog() {
     this.confirmationService.confirm({
       key: 'showConfirmationDialog',
-      message: 'Are you sure you want to delete?',
+      message: 'Êtes-vous sûr de vouloir supprimer ?',
       header: 'Confirmation',
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui',
+      rejectLabel: 'Non',
       accept: () => {
         this.deleteVersion(this.version.id);
       },
       reject: () => {
+        
       }
     });
   }
@@ -280,7 +282,7 @@ export class VersionFormComponent implements OnInit {
         this.router.navigate(['/user/projects/',this.projectId]);
       },
       error => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete project.' });
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de la suppression du projet.' });
       }
     );
   }
