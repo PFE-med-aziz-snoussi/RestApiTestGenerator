@@ -25,7 +25,7 @@ pipeline {
         }
 	stage('Build Docker') {
             steps {
-                sh "docker build -t rest-api-test-generator ."
+                sh "docker build -t azizsnoussi/rest-api-test-generator ."
             }
         }
     	 stage('Docker Login') {
