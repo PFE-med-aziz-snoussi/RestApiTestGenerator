@@ -25,7 +25,7 @@ pipeline {
         }
 	stage('Build Docker') {
             steps {
-                sh "docker build -t azizsnoussi/rest-api-test-generator ."
+                sh "docker build -t rest-api-test-generator ."
             }
         }
     	 stage('Docker Login') {
@@ -35,6 +35,18 @@ pipeline {
         }
       }
     }   
+	 stage('Docker Push') {
+      	    steps {
+               sh "docker push rest-api-test-generator"
+      }
+    }
+
+    stage('docker compose') {
+            steps {
+                sh "docker-compose up -d "
+            }
+        }
+    }
 
  
 }
