@@ -31,8 +31,7 @@ pipeline {
 	    stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    sh 'npm install'
-                    sh 'npm run build -- --output-path=dist/rtg-ng --configuration production'
+                    sh "docker build -t azizsnoussi/rtg-ng-frontend
                 }
             }
         }
