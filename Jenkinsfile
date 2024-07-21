@@ -34,7 +34,7 @@ pipeline {
                     sh "docker build -t azizsnoussi/rtg-ng-frontend
                 }
             }
-        }
+
     	 stage('Docker Login') {
      	    steps {
         withCredentials([usernamePassword(credentialsId: 'dockercred', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
