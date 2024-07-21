@@ -23,9 +23,17 @@ pipeline {
                 sh 'mvn compile'
             }
         }
-	stage('Build Docker') {
+	stage('Build Backend') {
             steps {
                 sh "docker build -t azizsnoussi/rest-api-test-generator ."
+            }
+        }
+	    stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm run build -- --output-path=dist/rtg-ng --configuration production'
+                }
             }
         }
     	 stage('Docker Login') {
