@@ -37,7 +37,7 @@ pipeline {
     }   
 	 stage('Docker Push') {
       	    steps {
-               sh "docker push rest-api-test-generator"
+               sh "docker push azizsnoussi/rest-api-test-generator"
       }
     }
 
