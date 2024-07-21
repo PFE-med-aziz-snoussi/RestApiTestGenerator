@@ -11,7 +11,7 @@ RUN npm run build -- --output-path=dist/rtg-ng --configuration production
 
 FROM nginx:latest
 
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist/rtg-ng /usr/share/nginx/html
 COPY default.conf /etc/nginx/conf.d/default.conf
 
 
