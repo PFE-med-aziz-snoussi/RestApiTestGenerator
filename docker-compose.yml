@@ -16,7 +16,7 @@ services:
       - postgresql_data:/var/lib/postgresql/data
 
   backend:
-    image: azizsnoussi/rest-api-test-generator:latest
+    image: azizsnoussi/rest-api-test-generator
     container_name: backend
     depends_on:
       - postgres
@@ -32,7 +32,7 @@ services:
       - ./public:/public
 
   frontend:
-    image: azizsnoussi/rtg-ng-frontend:latest
+    image: azizsnoussi/rtg-ng-frontend
     container_name: frontend
     depends_on:
       - backend
