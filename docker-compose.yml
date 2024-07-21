@@ -16,9 +16,7 @@ services:
       - postgresql_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: azizsnoussi/rest-api-test-generator:latest
     container_name: backend
     depends_on:
       - postgres
@@ -34,9 +32,7 @@ services:
       - ./public:/public
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: azizsnoussi/rtg-ng-frontend:latest
     container_name: frontend
     depends_on:
       - backend
