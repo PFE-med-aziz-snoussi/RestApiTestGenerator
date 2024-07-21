@@ -31,7 +31,7 @@ pipeline {
 	    stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    sh "docker build -t azizsnoussi/rtg-ng-frontend
+                    sh "docker build -t azizsnoussi/rtg-ng-frontend ."
                 }
             }
 	}
