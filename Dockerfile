@@ -20,8 +20,10 @@ RUN mvn package -DskipTests
 # Stage 2: Create the runtime container
 FROM openjdk:17-jdk-slim
 
-# Install Newman and Newman Reporter JSON
-RUN apt-get update && apt-get install -y curl npm && \
+# Install Node.js 18.18.1 and Newman
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
     npm install -g newman newman-reporter-json
 
 # Copy the JAR file from the builder stage
