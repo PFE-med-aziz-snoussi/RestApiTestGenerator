@@ -53,7 +53,7 @@ public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
             String resultNormalPath = directory.getAbsolutePath() +File.separator + "executions" + File.separator + "result_" + postmanCollectionFileName;
             //resultNormalPath = resultNormalPath.replaceFirst("\\.json$", " _ " + executionId + ".json");
             String resultPath = resultNormalPath.replaceAll("\\\\", "\\\\\\\\").replace(".json","_"+executionId.toString()+".json");
-            String command = "cmd /c newman run " + postmanCollectionPath + " --reporters json --reporter-json-export " + resultPath + " --insecure";
+            String command = "/bin/sh -c 'newman run " + postmanCollectionPath + " --reporters json --reporter-json-export " + resultPath + " --insecure";
 
             // Execute the command
             Process process = Runtime.getRuntime().exec(command);
