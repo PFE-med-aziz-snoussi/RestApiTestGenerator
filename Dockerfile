@@ -30,6 +30,9 @@ COPY --from=build /app/target/RestApiTestGenerator-0.0.1-SNAPSHOT.jar /RestApiTe
 # Copy any required files
 COPY public /public
 
+# Ensure the public directory has the correct permissions
+RUN chmod -R 777 /public
+
 EXPOSE 8081
 
 # Set the entry point for the application with the specific JAR name
