@@ -279,7 +279,7 @@ export class VersionFormComponent implements OnInit {
   deleteVersion(id: number): void {
     this.versionService.deleteVersion(id).subscribe(
       () => {
-        this.router.navigate(['/user/projects/',this.projectId]);
+               this.router.navigate(['/dashboard']);
       },
       error => {
         this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec de la suppression du projet.' });
