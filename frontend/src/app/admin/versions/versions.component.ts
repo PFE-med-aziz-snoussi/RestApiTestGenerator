@@ -158,6 +158,7 @@ export class VersionsComponent implements OnInit {
         this.versions.push(addedVersion);
         this.messageService.add({ severity: 'success', summary: 'Version ajoutée', detail: 'Version ajoutée avec succès' });
         this.versionDialog = false;
+        this.fetchProjects();
       }, error => {
         this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de l\'ajout de la version : ' + error.message });
       });
@@ -170,40 +171,4 @@ export class VersionsComponent implements OnInit {
     this.versionDialog = false;
   }
 
-  downloadPostmanCollection(version: Version): void {
-    if (version.fichierPostmanCollection) {
-      /*
-      this.projectService.downloadPostmanCollection(version.projectId, version.id).subscribe((response: Blob) => {
-        const url = window.URL.createObjectURL(response);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = 'ApiCollection.json';
-        anchor.style.display = 'none';
-        document.body.appendChild(anchor);
-        anchor.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(anchor);
-      }, error => {
-        console.error('Erreur lors du téléchargement du fichier:', error);
-      }); */
-    } 
-  }
-
-  downloadOpenAPIFile(version: Version): void {
-    if (version.fichierOpenAPI) { /*
-      this.projectService.downloadOpenAPIFile(version.projectId, version.id).subscribe((response: Blob) => {
-        const url = window.URL.createObjectURL(response);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = 'OpenAPIFile.yaml';
-        anchor.style.display = 'none';
-        document.body.appendChild(anchor);
-        anchor.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(anchor);
-      }, error => {
-        console.error('Erreur lors du téléchargement du fichier:', error);
-      }); */
-    }
-  }
 }
