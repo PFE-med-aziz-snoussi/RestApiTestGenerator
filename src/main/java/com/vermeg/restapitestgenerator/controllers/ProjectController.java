@@ -245,7 +245,7 @@ public class ProjectController {
 
         List<Version> versions = project.getVersions();
         if (!versions.isEmpty()) {
-            Version lastVersion = versions.get(versions.size() - 1);
+            Version lastVersion = versions.get(versions.size() - 2);
             System.out.println(versions.size() - 1);
             if (lastVersion.getFichierOpenAPI() != null) {
                 // Create a new version for storing changes
