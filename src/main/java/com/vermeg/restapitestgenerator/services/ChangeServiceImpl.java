@@ -72,12 +72,12 @@ public class ChangeServiceImpl implements IChangeService {
     @Override
     public OpenAPI parseOpenAPI(String fileName) {
         try {
-            File directory = new File(OPENAPI_FILE_PATH);
+            File directory = new File("public");
             if (!directory.exists()) {
                 directory.mkdirs();
             }
 
-            String filePath = directory.getAbsolutePath() + File.separator + fileName;
+            String filePath = directory.getAbsolutePath() + File.separator +"openapifiles"+File.separator+ fileName;
             String fileContent = new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8);
             OpenAPIV3Parser parser = new OpenAPIV3Parser();
             SwaggerParseResult result = parser.readContents(fileContent, null, null);
