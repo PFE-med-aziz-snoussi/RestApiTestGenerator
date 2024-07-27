@@ -145,6 +145,8 @@ export class VersionsComponent implements OnInit {
       this.projectService.addVersion(this.projectId).subscribe((addedVersion: Version) => {
         this.versions.push(addedVersion);
         this.messageService.add({ severity: 'success', summary: 'Version added', detail: 'Version added successfully' });
+	   this.fetchVersionsByProjectId(this.projectId);
+
       });
     }
   }
@@ -159,6 +161,8 @@ export class VersionsComponent implements OnInit {
         this.versions.push(addedVersion);
         this.messageService.add({ severity: 'success', summary: 'Version added', detail: 'Version added successfully' });
         this.versionDialog = false;  
+        this.fetchVersionsByProjectId(this.projectId);
+
       });
     } else {
       this.messageService.add({ severity: 'warn', summary: 'No Project Selected', detail: 'Please select a project before saving.', life: 3000 });
