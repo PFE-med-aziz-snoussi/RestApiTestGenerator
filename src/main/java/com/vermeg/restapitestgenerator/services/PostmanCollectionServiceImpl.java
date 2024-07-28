@@ -44,35 +44,47 @@ import com.github.javafaker.Faker;
 @Service
 public class PostmanCollectionServiceImpl implements IPostmanCollectionService{
 
-    @Async
-    @Override
-    public CompletableFuture<String> runNewman(String postmanCollectionFileName,Long executionId) {
-        try {
-            File directory = new File("public");
-            String postmanCollectionPath = directory.getAbsolutePath()+ File.separator + "collections" + File.separator + postmanCollectionFileName;
-            String resultNormalPath = directory.getAbsolutePath() +File.separator + "executions" + File.separator + "result_" + postmanCollectionFileName;
-            //resultNormalPath = resultNormalPath.replaceFirst("\\.json$", " _ " + executionId + ".json");
-            String resultPath = resultNormalPath.replaceAll("\\\\", "\\\\\\\\").replace(".json","_"+executionId.toString()+".json");
-            String command = "cmd /c newman run " + postmanCollectionPath + " --reporters json --reporter-json-export " + resultPath + " --insecure";
+   
+@Async
+@Override
+public CompletableFuture<String> runNewman(String postmanCollectionFileName, Long executionId) {
+    try {
+        File directory = new File("public");
+        String postmanCollectionPath = directory.getAbsolutePath() + File.separator + "collections" + File.separator + postmanCollectionFileName;
+        String resultNormalPath = directory.getAbsolutePath() + File.separator + "executions" + File.separator + "result_" + postmanCollectionFileName;
+        String resultPath = resultNormalPath.replaceAll("\\\\", "/").replace(".json", "_" + executionId.toString() + ".json");
 
-            // Execute the command
-            Process process = Runtime.getRuntime().exec(command);
-            // Read the command output
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        // Build the command
+        String command = String.format("newman run %s --reporters json --reporter-json-export %s --insecure", postmanCollectionPath, resultPath);
+
+        // Use ProcessBuilder for better handling
+        ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", command);
+        processBuilder.redirectErrorStream(true); // Redirect error stream to input stream
+
+        Process process = processBuilder.start();
+
+        // Read the command output
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
-            // Wait for the process to complete
-            process.waitFor();
-            return CompletableFuture.completedFuture("result_" + postmanCollectionFileName.replace(".json","_"+executionId.toString()+".json"));
-
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            return CompletableFuture.completedFuture(null);
         }
-    }
 
+        // Wait for the process to complete with a timeout
+        boolean finished = process.waitFor(3, TimeUnit.MINUTES);
+        if (finished) {
+            return CompletableFuture.completedFuture("result_" + postmanCollectionFileName.replace(".json", "_" + executionId.toString() + ".json"));
+        } else {
+            process.destroy(); // Destroy the process if it exceeds the timeout
+            return CompletableFuture.completedFuture("Process timed out.");
+        }
+
+    } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
+        return CompletableFuture.completedFuture("Error occurred: " + e.getMessage());
+    }
+}
 
     public String saveOpenAPIFile(String openApiContent, String outputFileName) {
         File directory = new File("public");
