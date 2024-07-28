@@ -218,109 +218,110 @@ public class ProjectController {
         return ResponseEntity.ok().body(version);
     }
 
-    @PostMapping("/uploadOpenApi")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> uploadOpenAPIFile(@RequestParam("file") MultipartFile file,
-                                               @RequestParam("projectId") Long projectId,
-                                               @RequestParam("versionId") Long versionId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserName = authentication.getName();
+@PostMapping("/uploadOpenApi")
+@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+public ResponseEntity<?> uploadOpenAPIFile(@RequestParam("file") MultipartFile file,
+                                           @RequestParam("projectId") Long projectId,
+                                           @RequestParam("versionId") Long versionId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUserName = authentication.getName();
 
-        Optional<User> optionalUser = userDetailsService.getUserByUsername(currentUserName);
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    Optional<User> optionalUser = userDetailsService.getUserByUsername(currentUserName);
+    if (optionalUser.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("Please upload a file.");
-        }
+    if (file.isEmpty()) {
+        return ResponseEntity.badRequest().body("Please upload a file.");
+    }
 
-        Optional<Project> projectOpt = projectService.getProjectById(projectId);
-        if (projectOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        Project project = projectOpt.get();
+    Optional<Project> projectOpt = projectService.getProjectById(projectId);
+    if (projectOpt.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+    Project project = projectOpt.get();
 
-        Optional<Version> versionOpt = versionService.getVersionById(versionId);
-        if (versionOpt.isEmpty() || !versionOpt.get().getProject().getId().equals(projectId)) {
-            return ResponseEntity.notFound().build();
-        }
-        Version version = versionOpt.get();
+    Optional<Version> versionOpt = versionService.getVersionById(versionId);
+    if (versionOpt.isEmpty() || !versionOpt.get().getProject().getId().equals(projectId)) {
+        return ResponseEntity.notFound().build();
+    }
+    Version version = versionOpt.get();
 
-        List<Version> versions = project.getVersions();
-        if (!versions.isEmpty()) {
-            Version lastVersion = versions.get(versions.size() - 2); // Correcting the index to get the last version
-            if (lastVersion.getFichierOpenAPI() != null) {
-                try {
-                    // Parse the last and current OpenAPI files
-                    String yamlContent = new String(file.getBytes(), StandardCharsets.UTF_8);
-                    String openAPIFileFileName = postmanCollectionService.saveOpenAPIFile(yamlContent, null);
-                    OpenAPI lastOpenAPI = changeService.parseOpenAPI(lastVersion.getFichierOpenAPI());
-                    OpenAPI currentOpenAPI = changeService.parseOpenAPI(openAPIFileFileName);
+    List<Version> versions = project.getVersions();
+    if (versions.size() > 1) {
+        Version lastVersion = versions.get(versions.size() - 2); // Correcting the index to get the last version
+        if (lastVersion.getFichierOpenAPI() != null) {
+            try {
+                // Parse the last and current OpenAPI files
+                String yamlContent = new String(file.getBytes(), StandardCharsets.UTF_8);
+                String openAPIFileFileName = postmanCollectionService.saveOpenAPIFile(yamlContent, null);
+                OpenAPI lastOpenAPI = changeService.parseOpenAPI(lastVersion.getFichierOpenAPI());
+                OpenAPI currentOpenAPI = changeService.parseOpenAPI(openAPIFileFileName);
 
-                    if (lastOpenAPI == null || currentOpenAPI == null) {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to parse OpenAPI files.");
-                    }
-
-                    // Compare the OpenAPI files for breaking changes
-                    List<Change> changes = changeService.compareOpenAPIsForBreakingChanges(lastOpenAPI, currentOpenAPI, null);
-
-                    // Debugging: Log detected changes
-                    System.out.println("Detected changes: " + changes.size());
-                    for (Change change : changes) {
-                        System.out.println(change);
-                    }
-
-                    // If changes are detected, create and save a new version
-                    if (!changes.isEmpty()) {
-                        Version newVersion = new Version();
-                        newVersion.setProject(project);
-                        Version savedNewVersion = versionService.createVersion(newVersion);
-
-                        // Set the new OpenAPI file name based on the new version ID
-                        String openAPIFileName = "OpenAPI_" + optionalUser.get().getId() + "_" + project.getId() + "_" + savedNewVersion.getId() + ".json";
-
-                        // Save the new OpenAPI file with the new version
-                        postmanCollectionService.saveOpenAPIFile(yamlContent, openAPIFileName);
-
-                        // Set the version for each change
-                        for (Change change : changes) {
-                            change.setVersion(savedNewVersion);
-                        }
-
-                        savedNewVersion.setFichierOpenAPI(openAPIFileName);
-                        savedNewVersion.getChanges().addAll(changes);
-                        savedNewVersion = versionService.updateVersion(savedNewVersion.getId(), savedNewVersion);
-
-                        // Return the updated new version
-                        return ResponseEntity.ok().body(savedNewVersion);
-                    } else {
-                        // No changes detected, return a message
-                        return ResponseEntity.ok().body("No changes detected. No new version created.");
-                    }
-                } catch (IOException e) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to read the file.");
+                if (lastOpenAPI == null || currentOpenAPI == null) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to parse OpenAPI files.");
                 }
-            }
-        }
 
-        // If no last version exists or no changes were detected, proceed to save the new file
-        String openAPIFileName = "OpenAPI_" + optionalUser.get().getId() + "_" + project.getId() + "_" + version.getId() + ".json";
-        try {
-            String yamlContent = new String(file.getBytes(), StandardCharsets.UTF_8);
-            String openAPIFileFileName = postmanCollectionService.saveOpenAPIFile(yamlContent, openAPIFileName);
-            if (openAPIFileFileName == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save the file.");
-            }
-            version.setFichierOpenAPI(openAPIFileFileName);
+                // Compare the OpenAPI files for breaking changes
+                List<Change> changes = changeService.compareOpenAPIsForBreakingChanges(lastOpenAPI, currentOpenAPI, null);
 
-            // Update the version with the new OpenAPI file
-            Version updatedVersion = versionService.updateVersion(version.getId(), version);
-            return ResponseEntity.ok().body(updatedVersion);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to read the file.");
+                // Debugging: Log detected changes
+                System.out.println("Detected changes: " + changes.size());
+                for (Change change : changes) {
+                    System.out.println(change);
+                }
+
+                // If changes are detected, create and save a new version
+                if (!changes.isEmpty()) {
+                    Version newVersion = new Version();
+                    newVersion.setProject(project);
+                    Version savedNewVersion = versionService.createVersion(newVersion);
+
+                    // Set the new OpenAPI file name based on the new version ID
+                    String openAPIFileName = "OpenAPI_" + optionalUser.get().getId() + "_" + project.getId() + "_" + savedNewVersion.getId() + ".json";
+
+                    // Save the new OpenAPI file with the new version
+                    postmanCollectionService.saveOpenAPIFile(yamlContent, openAPIFileName);
+
+                    // Set the version for each change
+                    for (Change change : changes) {
+                        change.setVersion(savedNewVersion);
+                    }
+
+                    savedNewVersion.setFichierOpenAPI(openAPIFileName);
+                    savedNewVersion.getChanges().addAll(changes);
+                    savedNewVersion = versionService.updateVersion(savedNewVersion.getId(), savedNewVersion);
+
+                    // Return the updated new version
+                    return ResponseEntity.ok().body(savedNewVersion);
+                } else {
+                    // No changes detected, return a message
+                    return ResponseEntity.ok().body("No changes detected. No new version created.");
+                }
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to read the file.");
+            }
         }
     }
+
+    // If no last version exists or no changes were detected, proceed to save the new file
+    String openAPIFileName = "OpenAPI_" + optionalUser.get().getId() + "_" + project.getId() + "_" + version.getId() + ".json";
+    try {
+        String yamlContent = new String(file.getBytes(), StandardCharsets.UTF_8);
+        String openAPIFileFileName = postmanCollectionService.saveOpenAPIFile(yamlContent, openAPIFileName);
+        if (openAPIFileFileName == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save the file.");
+        }
+        version.setFichierOpenAPI(openAPIFileFileName);
+
+        // Update the version with the new OpenAPI file
+        Version updatedVersion = versionService.updateVersion(version.getId(), version);
+        return ResponseEntity.ok().body(updatedVersion);
+    } catch (IOException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to read the file.");
+    }
+}
+
 
 
 
